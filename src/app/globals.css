@@ -93,3 +93,12 @@ p {
     position: relative;
     z-index: 2;
 }
+
+/*
+  ========================================
+  Utility Classes
+  ========================================
+*/
+body.no-scroll {
+  overflow: hidden;
+}

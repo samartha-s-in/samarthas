@@ -2,7 +2,7 @@
 import styles from './Resume.module.css';
 
 export default function ResumePage() {
-  const resumeUrl = '/Samartha-S-Resume.pdf';
+  const resumeUrl = '/SamarthaS_CV.pdf';
 
   return (
     <div className="container">
@@ -13,7 +13,7 @@ export default function ResumePage() {
         </p>
         <a 
           href={resumeUrl} 
-          download="Samartha-S-Resume.pdf" 
+          download="SamarthaS_CV.pdf" 
           className={styles.downloadButton}
         >
           Download PDF
@@ -31,7 +31,7 @@ export default function ResumePage() {
           <p>
             {/* Corrected the apostrophe in "doesn't" to "doesn&apos;t" */}
             It appears your browser doesn&apos;t support embedding PDFs. No problem! You can 
-            <a href={resumeUrl} download="Samartha-S-Resume.pdf"> download it directly </a> 
+            <a href={resumeUrl} download="SamarthaS_CV.pdf"> download it directly </a> 
             instead.
           </p>
         </object>
