@@ -29,14 +29,9 @@ async function getPostData(slug: string) {
     };
 }
 
-// THE FIX IS HERE: We define a clear type for the component's props.
-type Props = {
-    params: {
-        slug: string;
-    };
-};
-
-export default async function PostPage({ params }: Props) { // And we use that Props type here.
+// THE FIX IS HERE: We are defining the props for the page in a way
+// that is more compatible with Next.js's internal types.
+export default async function PostPage({ params }: { params: { slug: string } }) {
     const { frontmatter, content } = await getPostData(params.slug);
 
     return (
