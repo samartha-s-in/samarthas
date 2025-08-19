@@ -1,0 +1,72 @@
+.header {
+    width: 100%;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background-color: var(--background);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2rem 0;
+}
+
+.logo {
+    font-family: var(--font-playfair-display);
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.navLinks {
+    display: flex;
+    gap: 2.5rem;
+    align-items: center;
+}
+
+.navLinks a {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: color 0.2s ease;
+}
+
+.navLinks a:hover {
+    color: var(--text-primary);
+    text-decoration: none;
+}
+
+.resumeButton {
+    padding: 0.7rem 1.5rem;
+    border: 1px solid var(--primary-accent);
+    border-radius: 5px;
+    color: var(--primary-accent);
+    transition: all 0.2s ease;
+    background-color: transparent;
+}
+
+.resumeButton:hover {
+    background-color: var(--primary-accent);
+    color: var(--background);
+}
+
+.themeToggle {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.themeToggle:hover {
+    color: var(--text-primary);
+    background-color: var(--card-background);
+}

@@ -1,0 +1,60 @@
+.timeline {
+    position: relative;
+    max-width: 750px;
+    margin: 0 auto;
+}
+
+/* The vertical line */
+.timeline::after {
+    content: '';
+    position: absolute;
+    width: 2px;
+    background-color: var(--border-color);
+    top: 0;
+    bottom: 0;
+    left: 20px;
+}
+
+.timelineItem {
+    padding: 1rem 0 2rem 4rem;
+    position: relative;
+}
+
+.timelineDot {
+    content: '';
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background-color: var(--primary-accent);
+    border-radius: 50%;
+    top: 1.3rem;
+    left: 14px;
+    z-index: 1;
+}
+
+.date {
+    display: inline-block;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.title {
+    font-size: 1.5rem;
+    margin: 0.5rem 0;
+    color: var(--text-primary);
+}
+
+.company {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--primary-accent);
+    margin-bottom: 1rem;
+}
+
+.description {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    line-height: 1.7;
+}
