@@ -3,6 +3,7 @@ import path from 'path';
 import matter from 'gray-matter';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import styles from './Post.module.css';
+import { notFound } from 'next/navigation';
 
 const postsDirectory = path.join(process.cwd(), '_posts');
 
@@ -15,6 +16,11 @@ export async function generateStaticParams() {
 
 async function getPostData(slug: string) {
     const fullPath = path.join(postsDirectory, `${slug}.mdx`);
+    
+    if (!fs.existsSync(fullPath)) {
+        notFound();
+    }
+
     const fileContents = fs.readFileSync(fullPath, 'utf8');
     const { data, content } = matter(fileContents);
     return {
@@ -23,7 +29,14 @@ async function getPostData(slug: string) {
     };
 }
 
-export default async function PostPage({ params }: { params: { slug: string } }) {
+// THE FIX IS HERE: We define a clear type for the component's props.
+type Props = {
+    params: {
+        slug: string;
+    };
+};
+
+export default async function PostPage({ params }: Props) { // And we use that Props type here.
     const { frontmatter, content } = await getPostData(params.slug);
 
     return (
