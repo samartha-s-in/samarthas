@@ -96,7 +96,7 @@ export const RobotScrollPath: React.FC = () => {
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const robotGroupRef = useRef<THREE.Group | null>(null);
-  const wheelsRef = useRef<THREE.Mesh[]>([]);
+  const wheelAxlesRef = useRef<THREE.Group[]>([]);
   const lidarTurretRef = useRef<THREE.Mesh | null>(null);
   const animFrameRef = useRef<number | null>(null);
 
@@ -241,27 +241,46 @@ export const RobotScrollPath: React.FC = () => {
     robotGroup.add(lidarCap);
     lidarTurretRef.current = lidarCap;
 
-    // 4 Drive Wheels
+    // 4 Drive Wheels mounted on independent rotating axles
     const wheelGeo = new THREE.CylinderGeometry(0.35, 0.35, 0.25, 20);
-    const wheelMat = new THREE.MeshStandardMaterial({ color: 0x090d16, roughness: 0.9 });
-    const wheelPositions = [
+    const wheelMat = new THREE.MeshStandardMaterial({
+      color: metalDark,
+      roughness: 0.8,
+      metalness: 0.4,
+    });
+    const wheelPositions: [number, number, number][] = [
       [-0.95, 0.35, 0.7],
       [0.95, 0.35, 0.7],
       [-0.95, 0.35, -0.7],
       [0.95, 0.35, -0.7],
     ];
 
-    wheelsRef.current = [];
+    wheelAxlesRef.current = [];
     wheelPositions.forEach(([x, y, z]) => {
+      const axle = new THREE.Group();
+      axle.position.set(x, y, z);
+
       const wheel = new THREE.Mesh(wheelGeo, wheelMat);
       wheel.rotation.z = Math.PI / 2;
-      wheel.position.set(x, y, z);
       wheel.castShadow = true;
-      robotGroup.add(wheel);
-      wheelsRef.current.push(wheel);
+      axle.add(wheel);
+
+      // Wheel Rim Hubcap Accent
+      const rimGeo = new THREE.CylinderGeometry(0.18, 0.18, 0.27, 16);
+      const rimMat = new THREE.MeshStandardMaterial({
+        color: primaryColor,
+        metalness: 0.85,
+        roughness: 0.2,
+      });
+      const rim = new THREE.Mesh(rimGeo, rimMat);
+      rim.rotation.z = Math.PI / 2;
+      axle.add(rim);
+
+      robotGroup.add(axle);
+      wheelAxlesRef.current.push(axle);
     });
 
-    // Dual Forward LED Headlights
+    // Dual Forward LED Headlights (placed at +Z front)
     const lightMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
     const hlLeft = new THREE.Mesh(new THREE.SphereGeometry(0.08, 12, 12), lightMat);
     hlLeft.position.set(-0.45, 0.5, 1.12);
@@ -270,7 +289,7 @@ export const RobotScrollPath: React.FC = () => {
     robotGroup.add(hlLeft);
     robotGroup.add(hlRight);
 
-    // Front Headlight Beam (SpotLight)
+    // Front Headlight Beam (SpotLight shining forward along +Z)
     const headBeam = new THREE.SpotLight(0xffffff, 4, 12, Math.PI / 6, 0.4);
     headBeam.position.set(0, 0.6, 1.2);
     const targetObj = new THREE.Object3D();
@@ -279,9 +298,12 @@ export const RobotScrollPath: React.FC = () => {
     headBeam.target = targetObj;
     robotGroup.add(headBeam);
 
-    // Initial positioning at progress 0
-    const startPt = splineRef.current.getPointAt(0);
-    robotGroup.position.copy(startPt);
+    // Initial positioning at current progress (or 0)
+    const initProgress = currentProgressRef.current || 0;
+    const startPt = splineRef.current.getPointAt(initProgress);
+    const startTangent = splineRef.current.getTangentAt(initProgress).normalize();
+    robotGroup.position.set(startPt.x, 0, startPt.z);
+    robotGroup.rotation.set(0, Math.atan2(startTangent.x, startTangent.z), 0);
     scene.add(robotGroup);
 
     // Handle Window Resize
@@ -296,7 +318,7 @@ export const RobotScrollPath: React.FC = () => {
     window.addEventListener('resize', handleResize);
 
     // Animation Loop
-    let lastP = 0;
+    let lastP = initProgress;
     const animate = () => {
       animFrameRef.current = requestAnimationFrame(animate);
 
@@ -312,19 +334,19 @@ export const RobotScrollPath: React.FC = () => {
       const tangent = splineRef.current.getTangentAt(p).normalize();
 
       if (robotGroupRef.current) {
-        robotGroupRef.current.position.copy(pos);
+        robotGroupRef.current.position.set(pos.x, 0, pos.z);
 
-        // Smooth orientation along path tangent
-        const targetLook = pos.clone().add(tangent);
-        robotGroupRef.current.lookAt(targetLook);
+        // Robot is modeled facing local +Z.
+        // Heading angle on ground plane X-Z (tangent.x, tangent.z):
+        const headingAngle = Math.atan2(tangent.x, tangent.z);
 
-        // Slight acceleration tilt
-        robotGroupRef.current.rotation.x = Math.max(-0.06, Math.min(0.06, deltaP * 12));
+        // Strictly set yaw (Y) and enforce 0 pitch (X) and 0 roll (Z) so robot is always 100% upright
+        robotGroupRef.current.rotation.set(0, headingAngle, 0);
       }
 
-      // Rotate wheels with velocity
-      wheelsRef.current.forEach((w) => {
-        w.rotation.x += deltaP * 40;
+      // Rotate wheels forward along axle with velocity
+      wheelAxlesRef.current.forEach((axle) => {
+        axle.rotation.x += deltaP * 50;
       });
 
       // Spin LiDAR Turret
@@ -332,7 +354,7 @@ export const RobotScrollPath: React.FC = () => {
         lidarTurretRef.current.rotation.y += 0.06;
       }
 
-      // Dynamic Camera follow
+      // Dynamic Camera follow behind and above robot
       if (cameraRef.current) {
         cameraRef.current.position.x = pos.x * 0.4;
         cameraRef.current.position.z = pos.z + 12;
@@ -359,21 +381,24 @@ export const RobotScrollPath: React.FC = () => {
     if (!container) return;
 
     const handleScroll = () => {
+      if (isAutoDriving) return;
       const rect = container.getBoundingClientRect();
       const windowHeight = window.innerHeight;
-      const totalDist = rect.height - windowHeight;
 
-      if (totalDist > 0) {
-        const scrolled = Math.max(0, -rect.top);
-        const progress = Math.min(1, Math.max(0, scrolled / totalDist));
-        targetProgressRef.current = progress;
-        setScrollProgress(progress);
+      // Calculate progress when container is in viewport
+      if (rect.bottom > 0 && rect.top < windowHeight) {
+        const totalDist = windowHeight + rect.height;
+        const currentProgress = (windowHeight - rect.top) / totalDist;
+        const clampedProgress = Math.min(1, Math.max(0, currentProgress));
+
+        targetProgressRef.current = clampedProgress;
+        setScrollProgress(clampedProgress);
 
         // Calculate active station index based on closest progress
         let closestIdx = 0;
         let minDiff = 999;
         WAYPOINTS.forEach((wp, idx) => {
-          const diff = Math.abs(progress - wp.progress);
+          const diff = Math.abs(clampedProgress - wp.progress);
           if (diff < minDiff) {
             minDiff = diff;
             closestIdx = idx;
@@ -385,7 +410,7 @@ export const RobotScrollPath: React.FC = () => {
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [isAutoDriving]);
 
   // Jump smoothly to a specific waypoint
   const jumpToWaypoint = (idx: number) => {

@@ -294,7 +294,7 @@ export default function HomePage() {
       </section>
 
       {/* 3D ROBOTICS & VIBE CODING WORKSTATION LAB */}
-      <section id="lab" className={`section-padding ${styles.labSection}`}>
+      <section id="lab" className={styles.labSection}>
         <div className="container">
           <div className={styles.sectionHeaderCenter}>
             <span className={styles.sectionEyebrow}>INTERACTIVE 3D &amp; HARDWARE WORKBENCH</span>
