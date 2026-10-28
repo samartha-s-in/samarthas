@@ -69,7 +69,32 @@ export default async function PostPage({
               <Clock size={14} />
               5 min read
             </span>
+            {frontmatter.category && (
+              <span
+                style={{
+                  background: 'var(--surface-muted)',
+                  border: '1px solid var(--accent-primary)',
+                  color: 'var(--accent-primary)',
+                  padding: '2px 8px',
+                  borderRadius: '6px',
+                  fontSize: '0.7rem',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                }}
+              >
+                {frontmatter.category}
+              </span>
+            )}
           </div>
+          {frontmatter.tags && Array.isArray(frontmatter.tags) && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '14px' }}>
+              {frontmatter.tags.map((t: string) => (
+                <span key={t} className="tech-chip">
+                  #{t}
+                </span>
+              ))}
+            </div>
+          )}
         </header>
 
         <div className={styles.postBody}>

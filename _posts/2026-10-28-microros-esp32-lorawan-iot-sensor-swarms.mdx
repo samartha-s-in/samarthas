@@ -1,0 +1,65 @@
+---
+title: 'Micro-ROS on ESP32: Distributed Low-Power IoT Sensor Swarms over LoRaWAN'
+date: '2026-10-28'
+author: 'Samartha S'
+category: 'IoT'
+tags: ["micro-ROS","ESP32","LoRaWAN","FreeRTOS","Embedded IoT","Sensors"]
+excerpt: 'Architecting decentralized sensor clusters transmitting localized environmental and kinematic telemetry across multi-kilometer industrial facilities.'
+---
+
+## Bridging the Microcontroller-to-ROS 2 Divide
+
+Traditional industrial IoT deployments often operate as isolated silos, requiring custom serial parsers or MQTT bridges to interface with autonomous vehicles and centralized fleet managers.
+
+**micro-ROS** bridges this divide by embedding true ROS 2 nodes directly into microcontrollers like the dual-core **ESP32-S3**, communicating natively via **eProsima Micro XRCE-DDS**.
+
+```
+[ ESP32 Sensor Node 1 ] ──┐
+[ ESP32 Sensor Node 2 ] ──┼──> [ Micro XRCE-DDS Agent ] ──> [ ROS 2 Core Network ]
+[ ESP32 Sensor Node 3 ] ──┘     (Gateway PC / Jetson)        (/scan, /diagnostics)
+```
+
+### Power Management & Energy Harvesting
+
+For long-term battery autonomy, the ESP32 operates using FreeRTOS tickless idle and deep sleep scheduling:
+
+1. **Active Measurement Window (30 ms):** Powers on I2C sensor rails, samples IMU/optical sensors, and constructs the micro-ROS message.
+2. **LoRaWAN Burst Transmission (45 ms):** Transmits encrypted packet at SF7 across 868/915 MHz bands.
+3. **Ultra-Low-Power Deep Sleep (29.9 seconds):** Quiescent current consumption drops to **14.2 uA**, delivering over 180 days of continuous operation on a single 1200mAh LiPo cell.
+
+### C / FreeRTOS micro-ROS Implementation
+
+```c
+#include <rcl/rcl.h>
+#include <rclc/rclc.h>
+#include <sensor_msgs/msg/temperature.h>
+
+rcl_publisher_t publisher;
+sensor_msgs__msg__Temperature msg;
+rclc_executor_t executor;
+
+void setup_micro_ros() {
+  rcl_allocator_t allocator = rcl_get_default_allocator();
+  rclc_support_t support;
+
+  // Initialize micro-ROS support structure
+  rclc_support_init(&support, 0, NULL, &allocator);
+
+  // Create node
+  rcl_node_t node;
+  rclc_node_init_default(&node, "esp32_biosensor_node", "", &support);
+
+  // Initialize Publisher
+  rclc_publisher_init_default(
+    &publisher, &node,
+    ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Temperature),
+    "/iot/ambient_temp"
+  );
+}
+```
+
+### Key Benefits for Robotics Fleets
+
+- **Unified Topic Namespaces:** Distributed environmental sensors publish directly to standard ROS 2 topic names.
+- **Deterministic Hardware Abstraction:** Microcontrollers handle real-time GPIO and ADC timing while offloading SLAM and navigation to companion computers.
+- **Extreme Range:** LoRaWAN fallback allows nodes located over 5 km away to trigger automated robot dispatches.

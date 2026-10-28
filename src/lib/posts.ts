@@ -14,7 +14,13 @@ export function getSortedPostsData() {
 
     return {
       slug,
-      ...(matterResult.data as { title: string; date: string; excerpt: string }),
+      ...(matterResult.data as {
+        title: string;
+        date: string;
+        excerpt: string;
+        category?: string;
+        tags?: string[];
+      }),
     };
   });
 

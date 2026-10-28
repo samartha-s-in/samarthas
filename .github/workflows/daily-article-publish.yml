@@ -1,0 +1,49 @@
+name: Automated Daily Technical Article Publishing
+
+on:
+  schedule:
+    # Runs daily at 03:00 UTC (08:30 AM IST)
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+    # Allows manual trigger at any time from GitHub Actions UI
+
+permissions:
+  contents: write
+
+jobs:
+  publish-daily-article:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci || npm install --production=false
+
+      - name: Generate Today's Technical Article
+        run: node scripts/generate-daily-article.mjs
+
+      - name: Commit and Push New Article
+        run: |
+          git status
+          if [ -n "$(git status --porcelain _posts/)" ]; then
+            git config user.name "samartha-s-in"
+            git config user.email "samarthas729@gmail.com"
+            git add _posts/
+            TODAY=$(date +'%Y-%m-%d')
+            git commit -m "feat(blog): publish daily article for ${TODAY} [automated]"
+            git push origin main
+            echo "Successfully published and pushed new article for ${TODAY}!"
+          else
+            echo "No new article needed (today's post already exists)."
+          fi
