@@ -1,7 +1,11 @@
-import Link from 'next/link';
 import { getSortedPostsData } from '@/lib/posts';
-import { Calendar, ArrowRight, Clock } from 'lucide-react';
+import BlogListClient from '@/components/Blog/BlogListClient';
 import styles from './Blog.module.css';
+
+export const metadata = {
+  title: 'Articles & Insights | Samartha S - Robotics & AI Engineer',
+  description: 'Technical articles and deep-dives on ROS 2, autonomous mobile robotics, computer vision, and embedded systems by Samartha S.',
+};
 
 export default function BlogPage() {
   const allPosts = getSortedPostsData();
@@ -18,34 +22,7 @@ export default function BlogPage() {
         </p>
       </div>
 
-      <section className={styles.postsList}>
-        {allPosts.map(({ slug, date, title, excerpt }) => (
-          <Link href={`/blog/${slug}`} key={slug} className={`glass-panel ${styles.postCard}`}>
-            <div className={styles.postMetaRow}>
-              <span className={styles.postDate}>
-                <Calendar size={13} />
-                {new Date(date).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </span>
-              <span className={styles.readTime}>
-                <Clock size={13} />
-                5 min read
-              </span>
-            </div>
-
-            <h2 className={styles.postTitle}>{title}</h2>
-            <p className={styles.postExcerpt}>{excerpt}</p>
-
-            <div className={styles.cardAction}>
-              <span>Read Article</span>
-              <ArrowRight size={15} />
-            </div>
-          </Link>
-        ))}
-      </section>
+      <BlogListClient posts={allPosts} />
     </div>
   );
 }

@@ -1,0 +1,248 @@
+.vssContainer {
+  position: relative;
+  width: 100%;
+  height: 580px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: var(--bg-card);
+  border: 1px solid var(--border-medium);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+  z-index: 1;
+}
+
+/*
+  ==============================================================
+  Header Bar Overlay
+  ==============================================================
+*/
+.vssHeader {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 24px;
+  background: linear-gradient(180deg, var(--bg-glass-card) 0%, transparent 100%);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border-subtle);
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.headerLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.vssBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-family: var(--font-mono), monospace;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--accent-primary);
+  text-transform: uppercase;
+}
+
+.crosshairIcon {
+  color: var(--accent-emerald);
+}
+
+.vssTitle {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.controlsCluster {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.modePill {
+  display: flex;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 2px;
+}
+
+.modeBtn {
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: var(--font-mono), monospace;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modeBtn:hover {
+  color: var(--text-primary);
+}
+
+.activeMode {
+  background: var(--surface-muted);
+  color: var(--accent-primary) !important;
+  font-weight: 700;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toolBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: var(--font-mono), monospace;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toolBtn:hover {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+.activeTool {
+  background: var(--surface-muted);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+.activeToolGreen {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: var(--accent-emerald);
+  color: var(--accent-emerald);
+}
+
+/*
+  ==============================================================
+  Bottom Telemetry Stream
+  ==============================================================
+*/
+.telemetryOverlay {
+  position: relative;
+  z-index: 10;
+  padding: 16px 24px;
+  background: linear-gradient(0deg, var(--bg-glass-card) 0%, transparent 100%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.telRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.telBox {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.telLabel {
+  font-size: 0.65rem;
+  font-family: var(--font-mono), monospace;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.telVal {
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-family: var(--font-mono), monospace;
+  color: var(--text-primary);
+}
+
+.telValHighlight {
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-family: var(--font-mono), monospace;
+  color: var(--accent-primary);
+}
+
+.telValGreen {
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-family: var(--font-mono), monospace;
+  color: var(--accent-emerald);
+}
+
+.sliderBox {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 140px;
+}
+
+.sliderHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sliderLabel {
+  font-size: 0.65rem;
+  font-family: var(--font-mono), monospace;
+  color: var(--text-muted);
+}
+
+.sliderVal {
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-family: var(--font-mono), monospace;
+  color: var(--accent-primary);
+}
+
+.rangeInput {
+  width: 100%;
+  accent-color: var(--accent-primary);
+  height: 4px;
+  cursor: pointer;
+}
+
+@media (max-width: 900px) {
+  .vssContainer {
+    height: 520px;
+  }
+
+  .vssHeader {
+    padding: 14px 18px;
+  }
+
+  .telemetryOverlay {
+    padding: 14px 18px;
+  }
+}

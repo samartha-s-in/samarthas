@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono } from 'next/font/google';
 import { ThemeProvider } from '@/components/Common/ThemeProvider';
 import Header from '@/components/Layout/Header';
 import Footer from '@/components/Layout/Footer';
+import RobotCompanion from '@/components/Spatial/RobotCompanion';
 import './globals.css';
 
 const inter = Inter({
@@ -84,6 +85,7 @@ export default function RootLayout({
             <Header />
             <main id="main-content">{children}</main>
             <Footer />
+            <RobotCompanion />
           </div>
         </ThemeProvider>
       </body>

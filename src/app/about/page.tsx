@@ -8,6 +8,8 @@ import {
   workExperience,
   educationList,
 } from '@/lib/portfolioData';
+import Card3DTilt from '@/components/Spatial/Card3DTilt';
+import BorderBeam from '@/components/Spatial/BorderBeam';
 import {
   Bot,
   GraduationCap,
@@ -27,8 +29,10 @@ export default function AboutPage() {
   return (
     <div className={`container ${styles.aboutPage}`}>
       {/* Header Profile Hero */}
-      <section className={`glass-panel ${styles.introCard}`}>
-        <div className={styles.introFlex}>
+      <Card3DTilt intensity={8}>
+        <section className={`glass-panel ${styles.introCard}`}>
+          <BorderBeam size={200} duration={8} />
+          <div className={styles.introFlex}>
           <div className={styles.avatarWrapper}>
             <Image
               src="/samartha.png"
@@ -90,6 +94,7 @@ export default function AboutPage() {
           </div>
         </div>
       </section>
+      </Card3DTilt>
 
       {/* Work Experience & Research Timeline */}
       <section id="experience" className={styles.sectionBlock}>
@@ -107,8 +112,9 @@ export default function AboutPage() {
 
         <div className={styles.timelineContainer}>
           {workExperience.map((exp, idx) => (
-            <div key={idx} className={`glass-panel ${styles.timelineItem}`}>
-              <div className={styles.itemHeader}>
+            <Card3DTilt key={idx} intensity={8}>
+              <div className={`glass-panel ${styles.timelineItem}`}>
+                <div className={styles.itemHeader}>
                 <div>
                   <span className={styles.typeTag}>{exp.type}</span>
                   <h3 className={styles.itemRole}>{exp.role}</h3>
@@ -147,6 +153,7 @@ export default function AboutPage() {
                 </div>
               )}
             </div>
+            </Card3DTilt>
           ))}
         </div>
       </section>
@@ -167,10 +174,11 @@ export default function AboutPage() {
 
         <div className={styles.timelineContainer}>
           {educationList.map((edu, idx) => (
-            <div key={idx} className={`glass-panel ${styles.timelineItem}`}>
-              <div className={styles.itemHeader}>
-                <div>
-                  <h3 className={styles.itemRole}>{edu.degree}</h3>
+            <Card3DTilt key={idx} intensity={8}>
+              <div className={`glass-panel ${styles.timelineItem}`}>
+                <div className={styles.itemHeader}>
+                  <div>
+                    <h3 className={styles.itemRole}>{edu.degree}</h3>
                   <h4 className={styles.itemOrg}>
                     {edu.institution} • {edu.location}
                   </h4>
@@ -192,6 +200,7 @@ export default function AboutPage() {
                 ))}
               </ul>
             </div>
+            </Card3DTilt>
           ))}
         </div>
       </section>

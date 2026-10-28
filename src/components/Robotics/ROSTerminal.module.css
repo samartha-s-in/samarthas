@@ -1,0 +1,182 @@
+.terminalCard {
+  width: 100%;
+  border-radius: 18px;
+  overflow: hidden;
+  background: var(--code-bg);
+  border: 1px solid var(--border-medium);
+  box-shadow: var(--shadow-xl), var(--shadow-glow);
+  display: flex;
+  flex-direction: column;
+}
+
+.titleBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  background: rgba(0, 0, 0, 0.4);
+  border-bottom: 1px solid var(--border-subtle);
+  user-select: none;
+}
+
+.controlsLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.circleBtn {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+}
+
+.redBtn { background: #ef4444; }
+.yellowBtn { background: #f59e0b; }
+.greenBtn { background: #10b981; }
+
+.windowTitle {
+  font-size: 0.75rem;
+  font-family: var(--font-mono), monospace;
+  color: var(--text-muted);
+  margin-left: 8px;
+}
+
+.actionRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.streamBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 229, 255, 0.1);
+  border: 1px solid rgba(0, 229, 255, 0.3);
+  color: var(--accent-primary);
+  font-size: 0.68rem;
+  font-weight: 700;
+  font-family: var(--font-mono), monospace;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.streamBtn:hover {
+  background: rgba(0, 229, 255, 0.2);
+}
+
+.clearBtn {
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  color: var(--text-muted);
+  padding: 4px 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.clearBtn:hover {
+  color: #ef4444;
+  border-color: #ef4444;
+}
+
+.terminalBody {
+  height: 280px;
+  overflow-y: auto;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.82rem;
+  background: rgba(7, 9, 14, 0.85);
+}
+
+.logRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.timestamp {
+  color: var(--text-muted);
+  flex-shrink: 0;
+  font-size: 0.75rem;
+}
+
+.levelBadge {
+  font-weight: 700;
+  flex-shrink: 0;
+  font-size: 0.72rem;
+}
+
+.INFO { color: #38bdf8; }
+.WARN { color: #f59e0b; }
+.DATA { color: #10b981; }
+
+.nodeTag {
+  color: #a78bfa;
+  flex-shrink: 0;
+  font-weight: 600;
+}
+
+.logMessage {
+  color: #f1f5f9;
+}
+
+.commandForm {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: rgba(0, 0, 0, 0.6);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.promptLabel {
+  font-size: 0.8rem;
+  font-family: var(--font-mono), monospace;
+  color: #10b981;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.cliInput {
+  flex-grow: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: var(--font-mono), monospace;
+  font-size: 0.85rem;
+  color: #f8fafc;
+}
+
+.cliInput::placeholder {
+  color: #475569;
+}
+
+.enterBtn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  color: var(--text-muted);
+  padding: 4px 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.enterBtn:hover {
+  color: var(--accent-primary);
+  border-color: var(--accent-primary);
+}

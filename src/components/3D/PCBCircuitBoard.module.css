@@ -1,0 +1,152 @@
+.boardCard {
+  position: relative;
+  width: 100%;
+  border-radius: 24px;
+  overflow: hidden;
+  padding: 30px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-medium);
+  box-shadow: var(--shadow-xl);
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  min-height: 420px;
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.boardHeader {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.titleCol {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  background: var(--surface-muted);
+  border: 1px solid var(--border-subtle);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--accent-primary);
+  font-family: var(--font-mono), monospace;
+  width: fit-content;
+}
+
+.zapIcon {
+  color: #f59e0b;
+}
+
+.boardTitle {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.freqBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-family: var(--font-mono), monospace;
+  color: var(--accent-emerald);
+}
+
+.chipDock {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-top: auto;
+}
+
+.chipBtn {
+  background: var(--bg-glass-card);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.25s ease;
+}
+
+.chipBtn:hover {
+  border-color: var(--accent-primary);
+  transform: translateY(-2px);
+  background: var(--surface-active);
+}
+
+.activeChipBtn {
+  border-color: var(--accent-primary);
+  background: var(--surface-active);
+  box-shadow: 0 0 15px var(--accent-glow);
+}
+
+.chipPinHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-primary);
+}
+
+.chipName {
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.chipMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.chipState {
+  font-family: var(--font-mono), monospace;
+  font-weight: 700;
+  color: var(--accent-emerald);
+}
+
+@media (max-width: 900px) {
+  .chipDock {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .chipDock {
+    grid-template-columns: 1fr;
+  }
+}
