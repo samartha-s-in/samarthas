@@ -456,42 +456,9 @@ export const RobotScrollPath: React.FC = () => {
     };
   }, [resolvedTheme]);
 
-  // Listen to container scroll
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const handleScroll = () => {
-      if (isAutoDriving) return;
-      const rect = container.getBoundingClientRect();
-      const windowHeight = window.innerHeight;
-
-      // Calculate progress when container is in viewport
-      if (rect.bottom > 0 && rect.top < windowHeight) {
-        const totalDist = windowHeight + rect.height;
-        const currentProgress = (windowHeight - rect.top) / totalDist;
-        const clampedProgress = Math.min(1, Math.max(0, currentProgress));
-
-        targetProgressRef.current = clampedProgress;
-        setScrollProgress(clampedProgress);
-
-        // Calculate active station index based on closest progress
-        let closestIdx = 0;
-        let minDiff = 999;
-        WAYPOINTS.forEach((wp, idx) => {
-          const diff = Math.abs(clampedProgress - wp.progress);
-          if (diff < minDiff) {
-            minDiff = diff;
-            closestIdx = idx;
-          }
-        });
-        setActiveStation(closestIdx);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [isAutoDriving]);
+  // Decoupled from window scroll: page scrolling will not advance or change stages.
+  // Navigation between stations is explicitly controlled via station selector pills,
+  // the AUTO-DRIVE simulation toggle, the scrubber slider, or direct clicks on the 3D track.
 
   // Jump smoothly to a specific waypoint
   const jumpToWaypoint = (idx: number) => {

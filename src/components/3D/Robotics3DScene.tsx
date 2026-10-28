@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useTheme } from '@/components/Common/ThemeProvider';
-import { Bot, Radio, Layers, RotateCw, Navigation, Crosshair, MapPin } from 'lucide-react';
+import { Bot, Radio, Layers, RotateCw, Navigation, Crosshair, MapPin, Compass, Zap } from 'lucide-react';
 import styles from './Robotics3DScene.module.css';
 
 type ModelType = 'robot-arm' | 'drone' | 'amr-nav2';
@@ -16,6 +16,61 @@ interface Nav2Waypoint {
   z: number;
 }
 
+interface DroneWaypoint {
+  id: string;
+  name: string;
+  x: number;
+  y: number;
+  z: number;
+}
+
+interface ObstacleDef {
+  x: number;
+  z: number;
+  radius: number; // Collision avoidance inflation radius
+}
+
+// Fixed Warehouse Obstacles (Industrial Pillars & Pallet Blocks)
+const OBSTACLES: ObstacleDef[] = [
+  { x: -2.2, z: -2.0, radius: 1.4 },
+  { x: 2.2, z: -2.0, radius: 1.4 },
+  { x: -2.5, z: 2.2, radius: 1.4 },
+  { x: 2.5, z: 2.2, radius: 1.4 },
+];
+
+// Strategic collision-free roadmap vertices for global path planning
+const NAV_NODES: { x: number; z: number }[] = [
+  { x: 0, z: 0 },
+  { x: 0, z: -3.8 },
+  { x: 0, z: 3.8 },
+  { x: -4.5, z: 0 },
+  { x: 4.5, z: 0 },
+  { x: -4.5, z: -3.8 },
+  { x: 4.5, z: -3.8 },
+  { x: -4.5, z: 3.8 },
+  { x: 4.5, z: 3.8 },
+  { x: 0, z: -2.0 },
+  { x: 0, z: 2.2 },
+  { x: -2.35, z: 0.1 },
+  { x: 2.35, z: 0.1 },
+  { x: -3.9, z: -2.0 },
+  { x: -0.6, z: -2.0 },
+  { x: -2.2, z: -3.7 },
+  { x: -2.2, z: -0.3 },
+  { x: 3.9, z: -2.0 },
+  { x: 0.6, z: -2.0 },
+  { x: 2.2, z: -3.7 },
+  { x: 2.2, z: -0.3 },
+  { x: -4.0, z: 2.2 },
+  { x: -0.9, z: 2.2 },
+  { x: -2.5, z: 0.5 },
+  { x: -2.5, z: 3.9 },
+  { x: 4.0, z: 2.2 },
+  { x: 0.9, z: 2.2 },
+  { x: 2.5, z: 0.5 },
+  { x: 2.5, z: 3.9 },
+];
+
 const PRESET_WAYPOINTS: Nav2Waypoint[] = [
   { id: 'bay-a', name: 'Bay A: Assembly', x: -3.8, z: -2.6 },
   { id: 'bay-b', name: 'Bay B: Sorting', x: 3.6, z: -2.4 },
@@ -23,14 +78,127 @@ const PRESET_WAYPOINTS: Nav2Waypoint[] = [
   { id: 'bay-d', name: 'Bay D: QC Inspection', x: 3.8, z: 2.8 },
 ];
 
+const DRONE_PRESETS: DroneWaypoint[] = [
+  { id: 'alpha', name: 'Alpha (North WP)', x: 0, y: 2.8, z: -3.8 },
+  { id: 'bravo', name: 'Bravo (West WP)', x: -3.8, y: 3.2, z: 0.5 },
+  { id: 'charlie', name: 'Charlie (East WP)', x: 3.8, y: 2.7, z: 1.2 },
+  { id: 'home', name: 'Home Center Pad', x: 0, y: 2.2, z: 0 },
+];
+
+// Check if a 2D line segment collides with any obstacle inflation circle
+const checkSegmentBlocked = (
+  p1: { x: number; z: number },
+  p2: { x: number; z: number },
+  clearance = 1.35
+): boolean => {
+  for (const obs of OBSTACLES) {
+    const dx = p2.x - p1.x;
+    const dz = p2.z - p1.z;
+    const l2 = dx * dx + dz * dz;
+    let t = 0;
+    if (l2 > 0.00001) {
+      t = ((obs.x - p1.x) * dx + (obs.z - p1.z) * dz) / l2;
+      t = Math.max(0, Math.min(1, t));
+    }
+    const projX = p1.x + t * dx;
+    const projZ = p1.z + t * dz;
+    const dist = Math.hypot(obs.x - projX, obs.z - projZ);
+    if (dist < clearance) {
+      return true;
+    }
+  }
+  return false;
+};
+
+// Global Nav2 Route Planner with Dijkstra / Roadmap Search and String Pulling
+const planNav2Path = (
+  start: { x: number; z: number },
+  goal: { x: number; z: number }
+): { x: number; z: number }[] => {
+  // If direct line-of-sight is free, straight path is optimal
+  if (!checkSegmentBlocked(start, goal, 1.35)) {
+    return [start, goal];
+  }
+
+  // Build temporary navigation graph with start, roadmap nodes, and goal
+  const allNodes = [start, ...NAV_NODES, goal];
+  const startIdx = 0;
+  const goalIdx = allNodes.length - 1;
+  const n = allNodes.length;
+
+  const dist = new Array(n).fill(Infinity);
+  const prev = new Array(n).fill(-1);
+  const visited = new Array(n).fill(false);
+  dist[startIdx] = 0;
+
+  for (let step = 0; step < n; step++) {
+    let u = -1;
+    let minDist = Infinity;
+    for (let i = 0; i < n; i++) {
+      if (!visited[i] && dist[i] < minDist) {
+        minDist = dist[i];
+        u = i;
+      }
+    }
+    if (u === -1 || u === goalIdx) break;
+    visited[u] = true;
+
+    for (let v = 0; v < n; v++) {
+      if (v === u || visited[v]) continue;
+      if (!checkSegmentBlocked(allNodes[u], allNodes[v], 1.35)) {
+        const edgeWeight = Math.hypot(allNodes[u].x - allNodes[v].x, allNodes[u].z - allNodes[v].z);
+        const alt = dist[u] + edgeWeight;
+        if (alt < dist[v]) {
+          dist[v] = alt;
+          prev[v] = u;
+        }
+      }
+    }
+  }
+
+  // Fallback if goal not directly reached: try routing via center (0, 0)
+  if (dist[goalIdx] === Infinity) {
+    if (!checkSegmentBlocked(start, { x: 0, z: 0 }, 1.2) && !checkSegmentBlocked({ x: 0, z: 0 }, goal, 1.2)) {
+      return [start, { x: 0, z: 0 }, goal];
+    }
+    return [start, goal];
+  }
+
+  // Reconstruct shortest path
+  const rawPath: { x: number; z: number }[] = [];
+  let curr = goalIdx;
+  while (curr !== -1) {
+    rawPath.unshift(allNodes[curr]);
+    curr = prev[curr];
+  }
+
+  // String pulling / path shortcutting
+  const smoothedPath: { x: number; z: number }[] = [rawPath[0]];
+  let cIdx = 0;
+  while (cIdx < rawPath.length - 1) {
+    let nextIdx = rawPath.length - 1;
+    while (nextIdx > cIdx + 1) {
+      if (!checkSegmentBlocked(rawPath[cIdx], rawPath[nextIdx], 1.35)) {
+        break;
+      }
+      nextIdx--;
+    }
+    smoothedPath.push(rawPath[nextIdx]);
+    cIdx = nextIdx;
+  }
+
+  return smoothedPath;
+};
+
 export const Robotics3DScene: React.FC = () => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const { resolvedTheme } = useTheme();
   const [modelType, setModelType] = useState<ModelType>('amr-nav2');
   const [renderMode, setRenderMode] = useState<RenderMode>('shaded');
+
   const [telemetry, setTelemetry] = useState({ yaw: 0, pitch: 0, jointAngle: 0, scanDist: 14.8 });
   const [nav2Telemetry, setNav2Telemetry] = useState({
-    status: 'NAV2 READY [CLICK ANYWHERE ON GRID]',
+    status: 'NAV2 READY [CLICK ANYWHERE ON 3D GROUND]',
     targetX: 0,
     targetZ: 0,
     posX: 0,
@@ -40,6 +208,20 @@ export const Robotics3DScene: React.FC = () => {
     headingDeg: 0,
   });
   const [activeWpId, setActiveWpId] = useState<string | null>(null);
+
+  const [droneTelemetry, setDroneTelemetry] = useState({
+    status: 'PX4 STANDBY [CLICK 3D PLANE TO FLY]',
+    altitude: 2.2,
+    airspeed: 0,
+    targetX: 0,
+    targetZ: 0,
+    posX: 0,
+    posZ: 0,
+    headingDeg: 0,
+    pitchDeg: 0,
+    rollDeg: 0,
+  });
+  const [activeDroneWpId, setActiveDroneWpId] = useState<string | null>(null);
 
   // Refs for Three.js objects
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -58,6 +240,9 @@ export const Robotics3DScene: React.FC = () => {
   const nav2GoalMarkerRef = useRef<THREE.Group | null>(null);
   const nav2PathLineRef = useRef<THREE.Line | null>(null);
 
+  const droneGoalMarkerRef = useRef<THREE.Group | null>(null);
+  const dronePathLineRef = useRef<THREE.Line | null>(null);
+
   const jointsRef = useRef<{ [key: string]: THREE.Object3D }>({});
   const rotorsRef = useRef<THREE.Group[]>([]);
 
@@ -70,14 +255,37 @@ export const Robotics3DScene: React.FC = () => {
   const currentRotation = useRef({ x: 0.35, y: 0.45 });
 
   // Nav2 Autonomous Kinematics State Ref
-  const nav2StateRef = useRef({
+  const nav2StateRef = useRef<{
+    currentPos: THREE.Vector3;
+    targetPos: THREE.Vector3;
+    pathWaypoints: { x: number; z: number }[];
+    currentWpIndex: number;
+    heading: number;
+    linearVel: number;
+    angularVel: number;
+    isNavigating: boolean;
+    status: string;
+  }>({
     currentPos: new THREE.Vector3(0, 0, 0),
     targetPos: new THREE.Vector3(2.5, 0, -2.5),
-    heading: 0, // Radians
+    pathWaypoints: [],
+    currentWpIndex: 0,
+    heading: 0,
     linearVel: 0,
     angularVel: 0,
     isNavigating: false,
-    status: 'NAV2 READY [CLICK GRID]',
+    status: 'NAV2 READY [CLICK ANYWHERE ON 3D GROUND]',
+  });
+
+  // Pixhawk Drone Flight State Ref
+  const droneStateRef = useRef({
+    currentPos: new THREE.Vector3(0, 2.2, 0),
+    targetPos: new THREE.Vector3(0, 2.2, 0),
+    yaw: 0,
+    pitch: 0,
+    roll: 0,
+    isFlying: false,
+    status: 'PX4 STANDBY // READY FOR TAKEOFF',
   });
 
   // Helper: Normalize angle to [-PI, PI]
@@ -88,14 +296,39 @@ export const Robotics3DScene: React.FC = () => {
     return a;
   };
 
-  // Dispatch Nav2 Goal
+  // Update Dynamic Path Line in 3D scene
+  const updateNavPathLine = (points: { x: number; z: number }[]) => {
+    if (!nav2PathLineRef.current || points.length < 2) return;
+    const positions = new Float32Array(points.length * 3);
+    points.forEach((pt, i) => {
+      positions[i * 3] = pt.x;
+      positions[i * 3 + 1] = 0.08;
+      positions[i * 3 + 2] = pt.z;
+    });
+    nav2PathLineRef.current.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    nav2PathLineRef.current.geometry.attributes.position.needsUpdate = true;
+    nav2PathLineRef.current.visible = true;
+  };
+
+  // Dispatch Nav2 Goal with Obstacle Avoidance Path Planning
   const dispatchNav2Goal = (x: number, z: number, wpId: string | null = null) => {
-    const clampedX = Math.max(-6.5, Math.min(6.5, x));
-    const clampedZ = Math.max(-6.5, Math.min(6.5, z));
+    const clampedX = Math.max(-6.2, Math.min(6.2, x));
+    const clampedZ = Math.max(-6.2, Math.min(6.2, z));
+
+    const startPt = amrGroupRef.current
+      ? { x: amrGroupRef.current.position.x, z: amrGroupRef.current.position.z }
+      : { x: 0, z: 0 };
+    const goalPt = { x: clampedX, z: clampedZ };
+
+    const plannedPath = planNav2Path(startPt, goalPt);
 
     nav2StateRef.current.targetPos.set(clampedX, 0, clampedZ);
+    nav2StateRef.current.pathWaypoints = plannedPath;
+    nav2StateRef.current.currentWpIndex = plannedPath.length > 1 ? 1 : 0;
     nav2StateRef.current.isNavigating = true;
-    nav2StateRef.current.status = 'NAV2_PLANNING';
+    nav2StateRef.current.status = plannedPath.length > 2
+      ? `NAV2 DETOUR ROUTED AROUND OBSTACLE (${plannedPath.length} WPs)`
+      : `NAV2 DIRECT CORRIDOR ENGAGED`;
     setActiveWpId(wpId);
 
     // Update 3D Goal Marker
@@ -104,15 +337,36 @@ export const Robotics3DScene: React.FC = () => {
       nav2GoalMarkerRef.current.visible = true;
     }
 
-    // Update Path Line
-    if (nav2PathLineRef.current && amrGroupRef.current) {
-      const positions = new Float32Array([
-        amrGroupRef.current.position.x, 0.08, amrGroupRef.current.position.z,
-        clampedX, 0.08, clampedZ,
+    // Update Path Line with full collision-free route
+    updateNavPathLine(plannedPath);
+  };
+
+  // Dispatch Drone Autonomous Flight Waypoint
+  const dispatchDroneGoal = (x: number, y: number, z: number, wpId: string | null = null) => {
+    const clampedX = Math.max(-5.8, Math.min(5.8, x));
+    const clampedZ = Math.max(-5.8, Math.min(5.8, z));
+    const clampedY = Math.max(1.8, Math.min(4.2, y));
+
+    droneStateRef.current.targetPos.set(clampedX, clampedY, clampedZ);
+    droneStateRef.current.isFlying = true;
+    droneStateRef.current.status = 'PX4 AUTONOMOUS FLIGHT DISPATCHED';
+    setActiveDroneWpId(wpId);
+
+    // Position aerial drone marker
+    if (droneGoalMarkerRef.current) {
+      droneGoalMarkerRef.current.position.set(clampedX, clampedY, clampedZ);
+      droneGoalMarkerRef.current.visible = true;
+    }
+
+    // Update flight trajectory line
+    if (dronePathLineRef.current && droneGroupRef.current) {
+      const pos = new Float32Array([
+        droneGroupRef.current.position.x, droneGroupRef.current.position.y, droneGroupRef.current.position.z,
+        clampedX, clampedY, clampedZ,
       ]);
-      nav2PathLineRef.current.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-      nav2PathLineRef.current.geometry.attributes.position.needsUpdate = true;
-      nav2PathLineRef.current.visible = true;
+      dronePathLineRef.current.geometry.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      dronePathLineRef.current.geometry.attributes.position.needsUpdate = true;
+      dronePathLineRef.current.visible = true;
     }
   };
 
@@ -129,8 +383,8 @@ export const Robotics3DScene: React.FC = () => {
 
     // 2. Camera Setup
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    camera.position.set(0, 7.5, 12);
-    camera.lookAt(0, 0.5, 0);
+    camera.position.set(0, 8.5, 13.5);
+    camera.lookAt(0, 0.6, 0);
     cameraRef.current = camera;
 
     // 3. Renderer Setup
@@ -152,19 +406,19 @@ export const Robotics3DScene: React.FC = () => {
     const gridColor = isDark ? 0x00e5ff : 0x0284c7;
 
     // 4. Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, isDark ? 0.8 : 1.2);
+    const ambientLight = new THREE.AmbientLight(0xffffff, isDark ? 0.85 : 1.25);
     scene.add(ambientLight);
 
     const dirLight = new THREE.DirectionalLight(0xffffff, isDark ? 1.6 : 1.8);
-    dirLight.position.set(8, 16, 10);
+    dirLight.position.set(8, 18, 10);
     dirLight.castShadow = true;
     scene.add(dirLight);
 
-    const cyanPointLight = new THREE.PointLight(primaryColor, 3, 22);
-    cyanPointLight.position.set(-4, 4, 4);
+    const cyanPointLight = new THREE.PointLight(primaryColor, 3, 24);
+    cyanPointLight.position.set(-4, 5, 4);
     scene.add(cyanPointLight);
 
-    const bluePointLight = new THREE.PointLight(accentColor, 2, 22);
+    const bluePointLight = new THREE.PointLight(accentColor, 2, 24);
     bluePointLight.position.set(4, 5, -3);
     scene.add(bluePointLight);
 
@@ -187,26 +441,40 @@ export const Robotics3DScene: React.FC = () => {
     outerRingMesh.position.y = 0.02;
     scene.add(outerRingMesh);
 
-    // Virtual Obstacles (Warehouse Pillars / Pallets) for LiDAR Ray reflections
+    // Virtual Obstacles (Warehouse Pillars / Pallets) for LiDAR Ray reflections & Collision Avoidance
     const obstacleMat = new THREE.MeshStandardMaterial({
       color: metalDark,
       metalness: 0.8,
       roughness: 0.3,
     });
+    const obstacleRingMat = new THREE.MeshBasicMaterial({
+      color: 0xef4444,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.3,
+    });
+
     const obstacles: THREE.Mesh[] = [
-      new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.2, 0.8), obstacleMat),
-      new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.2, 0.8), obstacleMat),
+      new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.4, 0.8), obstacleMat),
+      new THREE.Mesh(new THREE.BoxGeometry(0.8, 1.4, 0.8), obstacleMat),
       new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 1.4, 16), obstacleMat),
       new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 1.4, 16), obstacleMat),
     ];
-    obstacles[0].position.set(-2.2, 0.6, -2.0);
-    obstacles[1].position.set(2.2, 0.6, -2.0);
+    obstacles[0].position.set(-2.2, 0.7, -2.0);
+    obstacles[1].position.set(2.2, 0.7, -2.0);
     obstacles[2].position.set(-2.5, 0.7, 2.2);
     obstacles[3].position.set(2.5, 0.7, 2.2);
-    obstacles.forEach((ob) => {
+
+    obstacles.forEach((ob, idx) => {
       ob.castShadow = true;
       ob.receiveShadow = true;
       scene.add(ob);
+
+      // Add a safety buffer zone ring on ground around each obstacle
+      const bufferZone = new THREE.Mesh(new THREE.RingGeometry(1.1, 1.15, 32), obstacleRingMat);
+      bufferZone.rotation.x = -Math.PI / 2;
+      bufferZone.position.set(OBSTACLES[idx].x, 0.03, OBSTACLES[idx].z);
+      scene.add(bufferZone);
     });
 
     // ==========================================
@@ -356,6 +624,57 @@ export const Robotics3DScene: React.FC = () => {
 
     scene.add(droneGroup);
 
+    // Aerial Drone Target Waypoint Marker
+    const droneGoalGroup = new THREE.Group();
+    droneGoalMarkerRef.current = droneGoalGroup;
+    droneGoalGroup.position.set(0, 2.8, -3.8);
+
+    const dRing = new THREE.Mesh(
+      new THREE.RingGeometry(0.35, 0.45, 32),
+      new THREE.MeshBasicMaterial({ color: 0xf97316, side: THREE.DoubleSide })
+    );
+    dRing.rotation.x = -Math.PI / 2;
+    droneGoalGroup.add(dRing);
+
+    const dRingOuter = new THREE.Mesh(
+      new THREE.RingGeometry(0.75, 0.82, 32),
+      new THREE.MeshBasicMaterial({ color: primaryColor, side: THREE.DoubleSide, transparent: true, opacity: 0.8 })
+    );
+    dRingOuter.rotation.x = -Math.PI / 2;
+    droneGoalGroup.add(dRingOuter);
+
+    const dOrb = new THREE.Mesh(
+      new THREE.SphereGeometry(0.12, 16, 16),
+      new THREE.MeshBasicMaterial({ color: 0xf97316 })
+    );
+    droneGoalGroup.add(dOrb);
+
+    // Vertical Ground Laser Projection Beam
+    const dProjGeo = new THREE.CylinderGeometry(0.02, 0.02, 3.2, 12);
+    const dProjMat = new THREE.MeshBasicMaterial({ color: 0xf97316, transparent: true, opacity: 0.45 });
+    const dProjBeam = new THREE.Mesh(dProjGeo, dProjMat);
+    dProjBeam.position.y = -1.6;
+    droneGoalGroup.add(dProjBeam);
+
+    // Ground Shadow Landing Reticle
+    const dReticle = new THREE.Mesh(
+      new THREE.RingGeometry(0.4, 0.5, 24),
+      new THREE.MeshBasicMaterial({ color: 0xf97316, side: THREE.DoubleSide, transparent: true, opacity: 0.5 })
+    );
+    dReticle.rotation.x = -Math.PI / 2;
+    dReticle.position.y = -2.78;
+    droneGoalGroup.add(dReticle);
+
+    scene.add(droneGoalGroup);
+
+    // Drone 3D Flight Trajectory Line (Orange glowing)
+    const dronePathGeo = new THREE.BufferGeometry();
+    dronePathGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array([0, 2.2, 0, 0, 2.8, -3.8]), 3));
+    const dronePathMat = new THREE.LineBasicMaterial({ color: 0xf97316, linewidth: 2 });
+    const dronePathLine = new THREE.Line(dronePathGeo, dronePathMat);
+    scene.add(dronePathLine);
+    dronePathLineRef.current = dronePathLine;
+
     // ==========================================
     // 8. BUILD MODEL C: AUTONOMOUS MOBILE ROBOT (AMR) WITH NAV2 & LIDAR
     // ==========================================
@@ -489,16 +808,13 @@ export const Robotics3DScene: React.FC = () => {
 
     for (let i = 0; i < rayCount; i++) {
       const angle = (i / rayCount) * Math.PI * 2;
-      // Ray start at LiDAR sensor origin
       rayVertices.push(0, 0.05, 0);
 
-      // Distance variation simulating room scan
       const range = 4.2 + Math.sin(angle * 3) * 1.5 + Math.cos(angle * 5) * 0.8;
       const rx = Math.sin(angle) * range;
       const rz = Math.cos(angle) * range;
       rayVertices.push(rx, 0.02, rz);
 
-      // Gradient colors
       rayColors.push(primaryRGB.r, primaryRGB.g, primaryRGB.b);
       rayColors.push(emeraldRGB.r, emeraldRGB.g, emeraldRGB.b);
     }
@@ -596,6 +912,8 @@ export const Robotics3DScene: React.FC = () => {
     amrGroup.visible = modelType === 'amr-nav2';
     goalMarkerGroup.visible = modelType === 'amr-nav2';
     pathLine.visible = modelType === 'amr-nav2';
+    droneGoalGroup.visible = modelType === 'drone';
+    dronePathLine.visible = modelType === 'drone';
 
     // ==========================================
     // 10. MOUSE INTERACTION & CLICK-TO-NAV2 RAYCASTER
@@ -638,7 +956,11 @@ export const Robotics3DScene: React.FC = () => {
         const hit = raycaster.ray.intersectPlane(groundPlane, intersectPoint);
 
         if (hit) {
-          dispatchNav2Goal(intersectPoint.x, intersectPoint.z, null);
+          if (modelType === 'amr-nav2') {
+            dispatchNav2Goal(intersectPoint.x, intersectPoint.z, null);
+          } else if (modelType === 'drone') {
+            dispatchDroneGoal(intersectPoint.x, 2.8, intersectPoint.z, null);
+          }
         }
       }
     };
@@ -670,16 +992,16 @@ export const Robotics3DScene: React.FC = () => {
 
       // Smooth camera orbit
       if (!isDraggingRef.current) {
-        targetRotation.current.y += 0.002;
+        targetRotation.current.y += 0.0015;
       }
       currentRotation.current.x += (targetRotation.current.x - currentRotation.current.x) * 0.08;
       currentRotation.current.y += (targetRotation.current.y - currentRotation.current.y) * 0.08;
 
-      const radius = 10.5;
+      const radius = 11.5;
       camera.position.x = radius * Math.sin(currentRotation.current.y) * Math.cos(currentRotation.current.x);
-      camera.position.y = Math.max(1.8, radius * Math.sin(currentRotation.current.x) + 3.8);
+      camera.position.y = Math.max(2.2, radius * Math.sin(currentRotation.current.x) + 4.2);
       camera.position.z = radius * Math.cos(currentRotation.current.y) * Math.cos(currentRotation.current.x);
-      camera.lookAt(0, 0.8, 0);
+      camera.lookAt(0, 0.9, 0);
 
       // Model A: Kinematic Arm
       if (jointsRef.current['swivel']) {
@@ -692,15 +1014,91 @@ export const Robotics3DScene: React.FC = () => {
         jointsRef.current['elbow'].rotation.z = Math.cos(elapsedTime * 1.4) * 0.45 - 0.4;
       }
 
-      // Model B: Drone
-      if (droneGroupRef.current) {
-        droneGroupRef.current.position.y = 2.2 + Math.sin(elapsedTime * 2.5) * 0.18;
-      }
-      rotorsRef.current.forEach((r, idx) => {
-        r.rotation.y += (idx % 2 === 0 ? 1 : -1) * 0.55;
-      });
+      // Model B: Drone Kinematics & Aerodynamic Flight
+      const drone = droneGroupRef.current;
+      const dState = droneStateRef.current;
 
-      // Model C: AUTONOMOUS AMR NAV2 KINEMATICS ENGINE
+      if (drone && modelType === 'drone') {
+        const rotorSpeed = dState.isFlying ? 0.95 : 0.55;
+        rotorsRef.current.forEach((r, idx) => {
+          r.rotation.y += (idx % 2 === 0 ? 1 : -1) * rotorSpeed;
+        });
+
+        if (droneGoalMarkerRef.current) {
+          const s = 1 + Math.sin(elapsedTime * 4) * 0.12;
+          droneGoalMarkerRef.current.scale.set(s, s, s);
+        }
+
+        if (dState.isFlying) {
+          const dx = dState.targetPos.x - drone.position.x;
+          const dy = dState.targetPos.y - drone.position.y;
+          const dz = dState.targetPos.z - drone.position.z;
+          const distXZ = Math.hypot(dx, dz);
+          const distTotal = Math.hypot(dx, dy, dz);
+
+          if (distTotal > 0.16) {
+            // Target heading in ground X-Z
+            const targetYaw = Math.atan2(dx, dz);
+            const yawDiff = normalizeAngle(targetYaw - dState.yaw);
+            dState.yaw += yawDiff * 0.08;
+
+            // Forward pitch tilt proportional to speed (max 0.22 rad)
+            const speed = Math.min(2.2, Math.max(0.4, distXZ * 0.95));
+            const targetPitch = Math.min(0.22, speed * 0.1);
+            dState.pitch += (targetPitch - dState.pitch) * 0.1;
+
+            // Bank roll when turning
+            const targetRoll = -Math.max(-0.25, Math.min(0.25, yawDiff * 0.4));
+            dState.roll += (targetRoll - dState.roll) * 0.1;
+
+            // Move drone
+            drone.position.x += Math.sin(dState.yaw) * speed * 0.035;
+            drone.position.z += Math.cos(dState.yaw) * speed * 0.035;
+            drone.position.y += dy * 0.05 + Math.sin(elapsedTime * 4) * 0.005;
+
+            // Apply orientation
+            drone.rotation.set(dState.pitch, dState.yaw, dState.roll);
+
+            dState.status = `PX4 CRUISE [DIST: ${distTotal.toFixed(2)}m]`;
+
+            // Update flight path line
+            if (dronePathLineRef.current) {
+              const pos = new Float32Array([
+                drone.position.x, drone.position.y, drone.position.z,
+                dState.targetPos.x, dState.targetPos.y, dState.targetPos.z
+              ]);
+              dronePathLineRef.current.geometry.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+              dronePathLineRef.current.geometry.attributes.position.needsUpdate = true;
+            }
+          } else {
+            // Reached destination, stabilize hover
+            dState.isFlying = false;
+            dState.status = 'PX4 HOVERING // POSITION HOLD';
+          }
+        } else {
+          // Hovering in place with gentle organic levitation
+          dState.pitch += (0 - dState.pitch) * 0.08;
+          dState.roll += (0 - dState.roll) * 0.08;
+          drone.rotation.set(dState.pitch, dState.yaw, dState.roll);
+          drone.position.y = dState.targetPos.y + Math.sin(elapsedTime * 2.5) * 0.12;
+        }
+
+        // Live Drone Telemetry
+        setDroneTelemetry({
+          status: dState.status,
+          altitude: Number(drone.position.y.toFixed(2)),
+          airspeed: dState.isFlying ? 1.65 : 0,
+          targetX: Number(dState.targetPos.x.toFixed(2)),
+          targetZ: Number(dState.targetPos.z.toFixed(2)),
+          posX: Number(drone.position.x.toFixed(2)),
+          posZ: Number(drone.position.z.toFixed(2)),
+          headingDeg: Number(((dState.yaw * (180 / Math.PI)) % 360).toFixed(1)),
+          pitchDeg: Number((dState.pitch * (180 / Math.PI)).toFixed(1)),
+          rollDeg: Number((dState.roll * (180 / Math.PI)).toFixed(1)),
+        });
+      }
+
+      // Model C: AUTONOMOUS AMR NAV2 KINEMATICS ENGINE WITH MULTI-WAYPOINT PATH TRACKING
       const amr = amrGroupRef.current;
       const nav = nav2StateRef.current;
 
@@ -722,29 +1120,41 @@ export const Robotics3DScene: React.FC = () => {
           nav2GoalMarkerRef.current.scale.set(s, 1, s);
         }
 
-        // Autonomous Navigation Execution
-        if (nav.isNavigating) {
-          const dx = nav.targetPos.x - amr.position.x;
-          const dz = nav.targetPos.z - amr.position.z;
-          const distToGoal = Math.hypot(dx, dz);
+        // Autonomous Navigation Execution along multi-waypoint path
+        if (nav.isNavigating && nav.pathWaypoints.length > 0) {
+          const currentTarget = nav.pathWaypoints[nav.currentWpIndex];
+          const isFinalGoal = nav.currentWpIndex === nav.pathWaypoints.length - 1;
 
-          if (distToGoal > 0.15) {
-            // Target heading in ground X-Z (+Z is forward)
+          const dx = currentTarget.x - amr.position.x;
+          const dz = currentTarget.z - amr.position.z;
+          const distToCurrent = Math.hypot(dx, dz);
+
+          // Advance to next waypoint if reached intermediate waypoint
+          if (!isFinalGoal && distToCurrent < 0.45) {
+            nav.currentWpIndex++;
+            const remaining = [{ x: amr.position.x, z: amr.position.z }, ...nav.pathWaypoints.slice(nav.currentWpIndex)];
+            updateNavPathLine(remaining);
+          } else if (isFinalGoal && distToCurrent < 0.14) {
+            // Goal reached!
+            nav.linearVel = 0;
+            nav.angularVel = 0;
+            nav.isNavigating = false;
+            nav.status = `GOAL REACHED [TOLERANCE < 0.1m]`;
+          } else {
+            // Steer towards current target
             const targetHeading = Math.atan2(dx, dz);
             const angleDiff = normalizeAngle(targetHeading - nav.heading);
 
-            // Differential drive: rotate towards target
-            nav.angularVel = Math.max(-2.2, Math.min(2.2, angleDiff * 3.2));
+            nav.angularVel = Math.max(-2.5, Math.min(2.5, angleDiff * 3.4));
             nav.heading += nav.angularVel * 0.03;
             amr.rotation.y = nav.heading;
 
-            // Move forward when roughly aligned with goal
             if (Math.abs(angleDiff) < 0.85) {
-              nav.linearVel = Math.min(1.6, Math.max(0.25, distToGoal * 1.1));
+              const baseSpeed = isFinalGoal ? Math.min(1.5, Math.max(0.3, distToCurrent * 1.1)) : 1.4;
+              nav.linearVel = baseSpeed;
               amr.position.x += Math.sin(nav.heading) * nav.linearVel * 0.03;
               amr.position.z += Math.cos(nav.heading) * nav.linearVel * 0.03;
 
-              // Rotate wheels forward with velocity
               amrWheelsRef.current.forEach((axle) => {
                 axle.rotation.x += nav.linearVel * 0.35;
               });
@@ -752,25 +1162,25 @@ export const Robotics3DScene: React.FC = () => {
               nav.linearVel = 0;
             }
 
-            nav.status = `NAV2 NAVIGATING [DIST: ${distToGoal.toFixed(2)}m]`;
+            nav.status = `NAV2 NAVIGATING [WAYPOINT ${nav.currentWpIndex + 1}/${nav.pathWaypoints.length}]`;
 
-            // Update Dynamic Nav2 Path Line
-            if (nav2PathLineRef.current) {
-              const positions = new Float32Array([
-                amr.position.x, 0.08, amr.position.z,
-                nav.targetPos.x, 0.08, nav.targetPos.z,
-              ]);
-              nav2PathLineRef.current.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-              nav2PathLineRef.current.geometry.attributes.position.needsUpdate = true;
-            }
-          } else {
-            // Arrived at destination
-            nav.linearVel = 0;
-            nav.angularVel = 0;
-            nav.isNavigating = false;
-            nav.status = `GOAL REACHED [TOLERANCE < 0.08m]`;
+            // Keep path line starting from current robot position
+            const remaining = [{ x: amr.position.x, z: amr.position.z }, ...nav.pathWaypoints.slice(nav.currentWpIndex)];
+            updateNavPathLine(remaining);
           }
         }
+
+        // Active Obstacle Repulsion Guard (Guarantee robot never passes through pillars)
+        OBSTACLES.forEach((obs) => {
+          const d = Math.hypot(amr.position.x - obs.x, amr.position.z - obs.z);
+          if (d < obs.radius) {
+            const push = (obs.radius - d) + 0.02;
+            const nx = (amr.position.x - obs.x) / (d || 0.001);
+            const nz = (amr.position.z - obs.z) / (d || 0.001);
+            amr.position.x += nx * push;
+            amr.position.z += nz * push;
+          }
+        });
 
         // Live Nav2 Telemetry
         setNav2Telemetry({
@@ -817,6 +1227,8 @@ export const Robotics3DScene: React.FC = () => {
     if (amrGroupRef.current) amrGroupRef.current.visible = modelType === 'amr-nav2';
     if (nav2GoalMarkerRef.current) nav2GoalMarkerRef.current.visible = modelType === 'amr-nav2';
     if (nav2PathLineRef.current) nav2PathLineRef.current.visible = modelType === 'amr-nav2';
+    if (droneGoalMarkerRef.current) droneGoalMarkerRef.current.visible = modelType === 'drone';
+    if (dronePathLineRef.current) dronePathLineRef.current.visible = modelType === 'drone';
   }, [modelType]);
 
   // Handle Wireframe / CATIA CAD Mode
@@ -839,13 +1251,17 @@ export const Robotics3DScene: React.FC = () => {
       {/* Three.js Canvas Host */}
       <div ref={containerRef} className={styles.canvasArea} />
 
-      {/* Top Floating HUD Controls */}
+      {/* Floating HUD Controls */}
       <div className={styles.hudOverlay}>
         <div className={styles.hudHeader}>
           <div className={styles.statusIndicator}>
             <span className="pulse-dot" />
             <span className={styles.hudTitle}>
-              {modelType === 'amr-nav2' ? 'NAV2 AUTONOMOUS AMR TWIN' : '3D REAL-TIME DIGITAL TWIN'}
+              {modelType === 'amr-nav2'
+                ? 'NAV2 AUTONOMOUS AMR TWIN'
+                : modelType === 'drone'
+                ? 'PIXHAWK PX4 AUTONOMOUS DRONE'
+                : '3D REAL-TIME DIGITAL TWIN'}
             </span>
           </div>
 
@@ -870,6 +1286,7 @@ export const Robotics3DScene: React.FC = () => {
               <button
                 className={`${styles.pillBtn} ${modelType === 'drone' ? styles.activePill : ''}`}
                 onClick={() => setModelType('drone')}
+                title="Pixhawk PX4 Drone with 3D Waypoint Navigation"
               >
                 <Radio size={13} />
                 <span>Pixhawk Drone</span>
@@ -888,88 +1305,153 @@ export const Robotics3DScene: React.FC = () => {
           </div>
         </div>
 
-        {/* AMR Nav2 Click Instruction & Quick Dispatch Waypoints Banner */}
-        {modelType === 'amr-nav2' && (
-          <div className={styles.nav2InstructionBanner}>
-            <div className={styles.nav2Prompt}>
-              <Crosshair size={14} className="animate-spin" />
-              <span>CLICK ANYWHERE ON 3D GROUND TO DISPATCH NAV2 GOAL:</span>
-            </div>
+        {/* Bottom Dock: Positioned cleanly at bottom above telemetry footer */}
+        <div className={styles.bottomDock}>
+          {/* AMR Nav2 Click Instruction & Quick Dispatch Waypoints Banner */}
+          {modelType === 'amr-nav2' && (
+            <div className={styles.nav2InstructionBanner}>
+              <div className={styles.nav2Prompt}>
+                <Crosshair size={14} className="animate-spin" />
+                <span>CLICK ANYWHERE ON 3D GROUND TO DISPATCH NAV2 GOAL:</span>
+              </div>
 
-            <div className={styles.nav2WpGroup}>
-              {PRESET_WAYPOINTS.map((wp) => (
-                <button
-                  key={wp.id}
-                  onClick={() => dispatchNav2Goal(wp.x, wp.z, wp.id)}
-                  className={`${styles.nav2WpBtn} ${activeWpId === wp.id ? styles.nav2WpBtnActive : ''}`}
-                >
-                  <MapPin size={11} />
-                  <span>{wp.name}</span>
-                </button>
-              ))}
+              <div className={styles.nav2WpGroup}>
+                {PRESET_WAYPOINTS.map((wp) => (
+                  <button
+                    key={wp.id}
+                    onClick={() => dispatchNav2Goal(wp.x, wp.z, wp.id)}
+                    className={`${styles.nav2WpBtn} ${activeWpId === wp.id ? styles.nav2WpBtnActive : ''}`}
+                  >
+                    <MapPin size={11} />
+                    <span>{wp.name}</span>
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
-
-        {/* Live Telemetry Stream Bar */}
-        <div className={styles.telemetryFooter}>
-          {modelType === 'amr-nav2' ? (
-            <>
-              <div className={styles.telItem}>
-                <span className={styles.telKey}>NAV2 STATE</span>
-                <span className={styles.telVal} style={{ color: 'var(--accent-emerald)' }}>
-                  {nav2Telemetry.status}
-                </span>
-              </div>
-              <div className={styles.telItem}>
-                <span className={styles.telKey}>POSE (X, Z, YAW)</span>
-                <span className={styles.telVal}>
-                  [{nav2Telemetry.posX}m, {nav2Telemetry.posZ}m, {nav2Telemetry.headingDeg}°]
-                </span>
-              </div>
-              <div className={styles.telItem}>
-                <span className={styles.telKey}>NAV2 GOAL</span>
-                <span className={styles.telVal}>
-                  [{nav2Telemetry.targetX}m, {nav2Telemetry.targetZ}m]
-                </span>
-              </div>
-              <div className={styles.telItem}>
-                <span className={styles.telKey}>CMD_VEL (V, Ω)</span>
-                <span className={styles.telVal}>
-                  {nav2Telemetry.linearVel} m/s | {nav2Telemetry.angularVel} rad/s
-                </span>
-              </div>
-              <div className={styles.telItem}>
-                <span className={styles.telKey}>LIDAR SCAN</span>
-                <span className={styles.telVal} style={{ color: 'var(--accent-primary)' }}>
-                  360° RAYS ACTIVE @ 15Hz
-                </span>
-              </div>
-            </>
-          ) : (
-            <>
-              <div className={styles.telItem}>
-                <span className={styles.telKey}>ORBIT YAW</span>
-                <span className={styles.telVal}>{telemetry.yaw}°</span>
-              </div>
-              <div className={styles.telItem}>
-                <span className={styles.telKey}>PITCH</span>
-                <span className={styles.telVal}>{telemetry.pitch}°</span>
-              </div>
-              <div className={styles.telItem}>
-                <span className={styles.telKey}>KINEMATIC THETA</span>
-                <span className={styles.telVal}>{telemetry.jointAngle}°</span>
-              </div>
-              <div className={styles.telItem}>
-                <span className={styles.telKey}>LIDAR ECHO</span>
-                <span className={styles.telVal}>{telemetry.scanDist} m</span>
-              </div>
-              <div className={styles.telHint}>
-                <RotateCw size={12} />
-                <span>Drag to Orbit / Click ground to navigate</span>
-              </div>
-            </>
           )}
+
+          {/* Pixhawk Drone Click Instruction & Quick Dispatch Waypoints Banner */}
+          {modelType === 'drone' && (
+            <div className={styles.nav2InstructionBanner}>
+              <div className={styles.nav2Prompt}>
+                <Compass size={14} />
+                <span>CLICK ANYWHERE ON 3D PLANE TO DISPATCH DRONE FLIGHT:</span>
+              </div>
+
+              <div className={styles.nav2WpGroup}>
+                {DRONE_PRESETS.map((wp) => (
+                  <button
+                    key={wp.id}
+                    onClick={() => dispatchDroneGoal(wp.x, wp.y, wp.z, wp.id)}
+                    className={`${styles.nav2WpBtn} ${activeDroneWpId === wp.id ? styles.nav2WpBtnActive : ''}`}
+                  >
+                    <MapPin size={11} />
+                    <span>{wp.name}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 6-DOF Arm Instruction Banner */}
+          {modelType === 'robot-arm' && (
+            <div className={styles.nav2InstructionBanner}>
+              <div className={styles.nav2Prompt}>
+                <Zap size={14} />
+                <span>6-DOF FORWARD KINEMATICS ACTIVE // DRAG TO ORBIT 360° CAD MODEL</span>
+              </div>
+            </div>
+          )}
+
+          {/* Live Telemetry Stream Bar */}
+          <div className={styles.telemetryFooter}>
+            {modelType === 'amr-nav2' ? (
+              <>
+                <div className={styles.telItem}>
+                  <span className={styles.telKey}>NAV2 STATE</span>
+                  <span className={styles.telVal} style={{ color: 'var(--accent-emerald)' }}>
+                    {nav2Telemetry.status}
+                  </span>
+                </div>
+                <div className={styles.telItem}>
+                  <span className={styles.telKey}>POSE (X, Z, YAW)</span>
+                  <span className={styles.telVal}>
+                    [{nav2Telemetry.posX}m, {nav2Telemetry.posZ}m, {nav2Telemetry.headingDeg}°]
+                  </span>
+                </div>
+                <div className={styles.telItem}>
+                  <span className={styles.telKey}>NAV2 GOAL</span>
+                  <span className={styles.telVal}>
+                    [{nav2Telemetry.targetX}m, {nav2Telemetry.targetZ}m]
+                  </span>
+                </div>
+                <div className={styles.telItem}>
+                  <span className={styles.telKey}>CMD_VEL (V, Ω)</span>
+                  <span className={styles.telVal}>
+                    {nav2Telemetry.linearVel} m/s | {nav2Telemetry.angularVel} rad/s
+                  </span>
+                </div>
+                <div className={styles.telItem}>
+                  <span className={styles.telKey}>LIDAR SCAN</span>
+                  <span className={styles.telVal} style={{ color: 'var(--accent-primary)' }}>
+                    360° LASER ACTIVE (OBSTACLES DETECTED)
+                  </span>
+                </div>
+              </>
+            ) : modelType === 'drone' ? (
+              <>
+                <div className={styles.telItem}>
+                  <span className={styles.telKey}>PX4 STATE</span>
+                  <span className={styles.telVal} style={{ color: '#f97316' }}>
+                    {droneTelemetry.status}
+                  </span>
+                </div>
+                <div className={styles.telItem}>
+                  <span className={styles.telKey}>ALTITUDE (AGL)</span>
+                  <span className={styles.telVal}>{droneTelemetry.altitude} m</span>
+                </div>
+                <div className={styles.telItem}>
+                  <span className={styles.telKey}>AIRSPEED</span>
+                  <span className={styles.telVal}>{droneTelemetry.airspeed} m/s</span>
+                </div>
+                <div className={styles.telItem}>
+                  <span className={styles.telKey}>ORIENTATION (P, R, Y)</span>
+                  <span className={styles.telVal}>
+                    [{droneTelemetry.pitchDeg}°, {droneTelemetry.rollDeg}°, {droneTelemetry.headingDeg}°]
+                  </span>
+                </div>
+                <div className={styles.telItem}>
+                  <span className={styles.telKey}>FLIGHT WAYPOINT</span>
+                  <span className={styles.telVal}>
+                    [{droneTelemetry.targetX}m, {droneTelemetry.targetZ}m]
+                  </span>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className={styles.telItem}>
+                  <span className={styles.telKey}>ORBIT YAW</span>
+                  <span className={styles.telVal}>{telemetry.yaw}°</span>
+                </div>
+                <div className={styles.telItem}>
+                  <span className={styles.telKey}>PITCH</span>
+                  <span className={styles.telVal}>{telemetry.pitch}°</span>
+                </div>
+                <div className={styles.telItem}>
+                  <span className={styles.telKey}>KINEMATIC THETA</span>
+                  <span className={styles.telVal}>{telemetry.jointAngle}°</span>
+                </div>
+                <div className={styles.telItem}>
+                  <span className={styles.telKey}>LIDAR ECHO</span>
+                  <span className={styles.telVal}>{telemetry.scanDist} m</span>
+                </div>
+                <div className={styles.telHint}>
+                  <RotateCw size={12} />
+                  <span>Drag to Orbit / Click ground to navigate</span>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>
