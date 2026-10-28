@@ -5,6 +5,7 @@ import Header from '@/components/Layout/Header';
 import Footer from '@/components/Layout/Footer';
 import RobotCompanion from '@/components/Spatial/RobotCompanion';
 import PageAnimation from '@/components/Common/PageAnimation';
+import RoboticsCanvas from '@/components/Common/RoboticsCanvas';
 import './globals.css';
 
 const inter = Inter({
@@ -83,6 +84,7 @@ export default function RootLayout({
       <body className={`${inter.variable} ${jetbrainsMono.variable}`}>
         <ThemeProvider>
           <div className="portfolio-app">
+            <RoboticsCanvas />
             <Header />
             <main id="main-content">
               <PageAnimation>{children}</PageAnimation>

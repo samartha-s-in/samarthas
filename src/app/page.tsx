@@ -12,7 +12,6 @@ import {
   skillCategories,
   Project,
 } from '@/lib/portfolioData';
-import RoboticsCanvas from '@/components/Common/RoboticsCanvas';
 import ProjectModal from '@/components/Common/ProjectModal';
 import InfiniteTicker from '@/components/Common/InfiniteTicker';
 import Card3DTilt from '@/components/Spatial/Card3DTilt';
@@ -108,9 +107,6 @@ export default function HomePage() {
 
   return (
     <div className={styles.homeWrapper}>
-      {/* Interactive Background */}
-      <RoboticsCanvas />
-
       {/* Hero Section */}
       <section className={styles.heroSection}>
         <div className={`container ${styles.heroContainer}`}>
