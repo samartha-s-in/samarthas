@@ -126,12 +126,30 @@
   border-color: transparent;
 }
 
+.modeGroup {
+  display: flex;
+  align-items: center;
+  background: var(--bg-glass-card);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-subtle);
+  border-radius: 9999px;
+  padding: 3px;
+  gap: 3px;
+}
+
+.modeGroup .cadToolBtn {
+  border: none;
+  background: transparent;
+  border-radius: 9999px;
+  padding: 5px 10px;
+}
+
 .specsBar {
   position: relative;
   z-index: 2;
   margin-top: auto;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 16px;
   padding: 16px;
   border-radius: 14px;

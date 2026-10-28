@@ -227,69 +227,182 @@ export const Robotics3DScene: React.FC = () => {
     droneGroupRef.current = droneGroup;
     droneGroup.position.set(0, 2.2, 0);
 
-    // Central Avionics Chassis
-    const chassisGeo = new THREE.BoxGeometry(1.2, 0.32, 1.2);
-    const chassisMesh = new THREE.Mesh(chassisGeo, baseMat);
-    droneGroup.add(chassisMesh);
+    // Carbon Fiber Weave Material & Metal Accents
+    const carbonMat = new THREE.MeshStandardMaterial({
+      color: 0x111827,
+      metalness: 0.6,
+      roughness: 0.35,
+    });
+    const orangeMat = new THREE.MeshStandardMaterial({
+      color: 0xf97316,
+      metalness: 0.8,
+      roughness: 0.2,
+    });
+    const goldMat = new THREE.MeshStandardMaterial({
+      color: 0xf59e0b,
+      metalness: 0.9,
+      roughness: 0.15,
+    });
 
-    // Pixhawk Controller Dome
-    const domeGeo = new THREE.CylinderGeometry(0.4, 0.45, 0.22, 16);
-    const domeMesh = new THREE.Mesh(domeGeo, jointMat);
-    domeMesh.position.y = 0.22;
-    droneGroup.add(domeMesh);
+    // Lower & Upper Carbon Fiber Chassis Decks
+    const lowerDeck = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.05, 1.4), carbonMat);
+    lowerDeck.position.y = -0.08;
+    lowerDeck.castShadow = true;
+    droneGroup.add(lowerDeck);
 
-    // Rotating LiDAR Scanner on Top
-    const lidarGeo = new THREE.CylinderGeometry(0.22, 0.22, 0.25, 16);
-    const lidarMesh = new THREE.Mesh(lidarGeo, baseMat);
-    lidarMesh.position.y = 0.42;
-    droneGroup.add(lidarMesh);
-    jointsRef.current['lidar'] = lidarMesh;
+    const upperDeck = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.05, 1.2), carbonMat);
+    upperDeck.position.y = 0.12;
+    upperDeck.castShadow = true;
+    droneGroup.add(upperDeck);
 
-    // 4 Drone Arms
-    const armGeo = new THREE.CylinderGeometry(0.06, 0.06, 1.6, 8);
+    // Deck Standoffs (4 pillars)
+    const standoffGeo = new THREE.CylinderGeometry(0.03, 0.03, 0.2, 8);
+    [
+      [-0.45, 0.02, -0.45],
+      [0.45, 0.02, -0.45],
+      [-0.45, 0.02, 0.45],
+      [0.45, 0.02, 0.45],
+    ].forEach(([sx, sy, sz]) => {
+      const standoff = new THREE.Mesh(standoffGeo, goldMat);
+      standoff.position.set(sx, sy, sz);
+      droneGroup.add(standoff);
+    });
+
+    // Center Pixhawk 6X Autopilot Flight Controller Case
+    const pixhawkCase = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.18, 0.7), orangeMat);
+    pixhawkCase.position.set(0, 0.22, 0);
+    pixhawkCase.castShadow = true;
+    droneGroup.add(pixhawkCase);
+
+    // Pixhawk Status RGB LED
+    const statusLed = new THREE.Mesh(
+      new THREE.SphereGeometry(0.05, 12, 12),
+      new THREE.MeshBasicMaterial({ color: primaryColor })
+    );
+    statusLed.position.set(0, 0.32, 0.15);
+    droneGroup.add(statusLed);
+
+    // GPS Mast & Antenna Puck
+    const gpsMast = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.6, 8), carbonMat);
+    gpsMast.position.set(-0.35, 0.42, -0.35);
+    droneGroup.add(gpsMast);
+
+    const gpsPuck = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.07, 16), jointMat);
+    gpsPuck.position.set(-0.35, 0.72, -0.35);
+    droneGroup.add(gpsPuck);
+
+    // Rotating Planar LiDAR on Top
+    const lidarMount = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.12, 16), baseMat);
+    lidarMount.position.set(0, 0.36, -0.15);
+    droneGroup.add(lidarMount);
+
+    const lidarCap = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.15, 0.15, 0.1, 16),
+      new THREE.MeshStandardMaterial({ color: primaryColor, emissive: primaryColor, emissiveIntensity: 0.6 })
+    );
+    lidarCap.position.set(0, 0.46, -0.15);
+    droneGroup.add(lidarCap);
+    jointsRef.current['lidar'] = lidarCap;
+
+    // Downward Optical Flow & LiDAR Altitude Sensor
+    const flowSensor = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.08, 0.2), jointMat);
+    flowSensor.position.set(0, -0.14, 0);
+    droneGroup.add(flowSensor);
+
+    // Downward Telemetry Laser Beam
+    const downBeamMat = new THREE.LineBasicMaterial({ color: 0x10b981, transparent: true, opacity: 0.6 });
+    const downBeamGeo = new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(0, -0.14, 0),
+      new THREE.Vector3(0, -2.2, 0),
+    ]);
+    const downBeam = new THREE.Line(downBeamGeo, downBeamMat);
+    droneGroup.add(downBeam);
+
+    // 4 Carbon Quadcopter Arms (450mm cross airframe)
+    const armGeo = new THREE.CylinderGeometry(0.065, 0.065, 1.8, 12);
     const armPositions = [
-      { x: 1, z: 1, rot: Math.PI / 4 },
-      { x: -1, z: 1, rot: -Math.PI / 4 },
-      { x: 1, z: -1, rot: -Math.PI / 4 },
-      { x: -1, z: -1, rot: Math.PI / 4 },
+      { x: 1, z: 1, rot: Math.PI / 4, isFront: true },
+      { x: -1, z: 1, rot: -Math.PI / 4, isFront: true },
+      { x: 1, z: -1, rot: -Math.PI / 4, isFront: false },
+      { x: -1, z: -1, rot: Math.PI / 4, isFront: false },
     ];
 
     rotorsRef.current = [];
 
     armPositions.forEach((pos) => {
-      const armM = new THREE.Mesh(armGeo, limbMat);
+      // Carbon arm tube
+      const armM = new THREE.Mesh(armGeo, carbonMat);
       armM.rotation.z = Math.PI / 2;
       armM.rotation.y = pos.rot;
-      armM.position.set(pos.x * 0.5, 0, pos.z * 0.5);
+      armM.position.set(pos.x * 0.62, 0.02, pos.z * 0.62);
+      armM.castShadow = true;
       droneGroup.add(armM);
 
-      // Motor Bell
-      const motorGeo = new THREE.CylinderGeometry(0.16, 0.16, 0.2, 12);
-      const motorMesh = new THREE.Mesh(motorGeo, jointMat);
-      motorMesh.position.set(pos.x * 1.1, 0.12, pos.z * 1.1);
-      droneGroup.add(motorMesh);
+      // Motor Mount Plate
+      const mountPlate = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.04, 16), carbonMat);
+      mountPlate.position.set(pos.x * 1.25, 0.04, pos.z * 1.25);
+      droneGroup.add(mountPlate);
 
-      // Rotor Blades
-      const bladeGeo = new THREE.BoxGeometry(1.2, 0.02, 0.12);
-      const bladeMesh = new THREE.Mesh(bladeGeo, baseMat);
-      bladeMesh.position.set(pos.x * 1.1, 0.24, pos.z * 1.1);
-      droneGroup.add(bladeMesh);
-      rotorsRef.current.push(bladeMesh);
+      // BLDC Brushless Motor Stator & Bell
+      const motorStator = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.14, 16), jointMat);
+      motorStator.position.set(pos.x * 1.25, 0.12, pos.z * 1.25);
+      droneGroup.add(motorStator);
+
+      const motorBell = new THREE.Mesh(new THREE.CylinderGeometry(0.19, 0.19, 0.1, 16), orangeMat);
+      motorBell.position.set(pos.x * 1.25, 0.22, pos.z * 1.25);
+      droneGroup.add(motorBell);
+
+      // Navigation LED Strobe (Green Front, Red Rear)
+      const ledColor = pos.isFront ? 0x10b981 : 0xef4444;
+      const navLed = new THREE.Mesh(
+        new THREE.SphereGeometry(0.04, 8, 8),
+        new THREE.MeshBasicMaterial({ color: ledColor })
+      );
+      navLed.position.set(pos.x * 1.25, -0.02, pos.z * 1.25);
+      droneGroup.add(navLed);
+
+      // Aerodynamic Propeller Blades (10-inch)
+      const propGroup = new THREE.Group();
+      propGroup.position.set(pos.x * 1.25, 0.3, pos.z * 1.25);
+
+      const bladeGeo = new THREE.BoxGeometry(1.4, 0.02, 0.14);
+      const blade1 = new THREE.Mesh(bladeGeo, carbonMat);
+      propGroup.add(blade1);
+
+      // Prop nut
+      const nut = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.08, 8), goldMat);
+      nut.position.y = 0.05;
+      propGroup.add(nut);
+
+      droneGroup.add(propGroup);
+      rotorsRef.current.push(propGroup);
     });
 
-    // Landing Struts
-    const strutGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.7, 8);
-    const strut1 = new THREE.Mesh(strutGeo, limbMat);
-    strut1.position.set(0.6, -0.35, 0);
-    strut1.rotation.z = 0.2;
-    droneGroup.add(strut1);
+    // Dual Carbon Landing Skids
+    const skidTubeGeo = new THREE.CylinderGeometry(0.035, 0.035, 1.8, 8);
+    const strutLegGeo = new THREE.CylinderGeometry(0.03, 0.03, 0.7, 8);
 
-    const strut2 = new THREE.Mesh(strutGeo, limbMat);
-    strut2.position.set(-0.6, -0.35, 0);
-    strut2.rotation.z = -0.2;
-    droneGroup.add(strut2);
+    [-0.65, 0.65].forEach((sx) => {
+      // Horizontal ground skid
+      const skid = new THREE.Mesh(skidTubeGeo, carbonMat);
+      skid.rotation.x = Math.PI / 2;
+      skid.position.set(sx, -0.65, 0);
+      skid.castShadow = true;
+      droneGroup.add(skid);
 
-    // Initial visibility
+      // Angled vertical struts
+      [-0.45, 0.45].forEach((sz) => {
+        const strut = new THREE.Mesh(strutLegGeo, carbonMat);
+        strut.position.set(sx * 0.75, -0.35, sz);
+        strut.rotation.z = sx > 0 ? -0.25 : 0.25;
+        droneGroup.add(strut);
+      });
+    });
+
+    // ADD DRONE GROUP TO SCENE (Fixed visibility!)
+    scene.add(droneGroup);
+
+    // Initial visibility sync
     armGroup.visible = modelType === 'robot-arm';
     droneGroup.visible = modelType === 'drone';
 
