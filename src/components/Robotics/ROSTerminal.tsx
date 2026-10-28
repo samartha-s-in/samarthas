@@ -646,8 +646,8 @@ cell_voltage: [4.10, 4.10, 4.10, 4.10] V`}
           <div className={styles.radarHost}>
             <canvas
               ref={radarCanvasRef}
-              width={270}
-              height={270}
+              width={280}
+              height={280}
               className={styles.radarCanvas}
               onClick={handleRadarClick}
               style={{ cursor: 'crosshair' }}
@@ -699,7 +699,7 @@ cell_voltage: [4.10, 4.10, 4.10, 4.10] V`}
               </div>
             </div>
 
-            <div className={styles.yamlViewer} style={{ maxHeight: '110px' }}>
+            <div className={styles.yamlViewer}>
               {`$ ros2 topic echo /scan --once
 header: {stamp: {sec: 1718293044}, frame_id: "laser_link"}
 angle_min: -3.14159 rad (-180.0°)

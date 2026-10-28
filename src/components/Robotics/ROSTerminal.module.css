@@ -1,6 +1,8 @@
 .terminalCard {
   width: 100%;
-  border-radius: 18px;
+  height: 100%;
+  min-height: 640px;
+  border-radius: 24px;
   overflow: hidden;
   background: var(--code-bg);
   border: 1px solid var(--border-medium);
@@ -130,9 +132,10 @@
    CLI & General Terminal Body
    ======================================================= */
 .terminalBody {
-  height: 310px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  padding: 16px 20px;
+  padding: 18px 22px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -228,13 +231,14 @@
    Publisher & Subscriber Views
    ======================================================= */
 .pubSubContainer {
-  height: 350px;
-  overflow-y: auto;
-  padding: 16px 20px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: hidden;
+  padding: 18px 22px;
   background: rgba(7, 9, 14, 0.88);
   display: grid;
   grid-template-columns: 280px 1fr;
-  gap: 16px;
+  gap: 18px;
 }
 
 .sideList {
@@ -243,6 +247,8 @@
   gap: 6px;
   border-right: 1px solid var(--border-subtle);
   padding-right: 14px;
+  overflow-y: auto;
+  height: 100%;
 }
 
 .topicItemBtn {
@@ -286,6 +292,8 @@
   flex-direction: column;
   gap: 12px;
   overflow-y: auto;
+  height: 100%;
+  min-height: 0;
 }
 
 .yamlViewer {
@@ -299,6 +307,7 @@
   line-height: 1.6;
   white-space: pre-wrap;
   flex-grow: 1;
+  min-height: 130px;
   overflow-y: auto;
 }
 
@@ -350,27 +359,28 @@
    LiDAR & Nav2 Session View (Radar Sweep)
    ======================================================= */
 .lidarSessionContainer {
-  height: 350px;
-  padding: 14px 18px;
+  flex: 1;
+  min-height: 0;
+  padding: 18px 22px;
   background: rgba(7, 9, 14, 0.88);
   display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 20px;
-  align-items: center;
+  grid-template-columns: 310px 1fr;
+  gap: 22px;
+  align-items: stretch;
 }
 
 .radarHost {
   width: 100%;
   height: 100%;
-  max-height: 320px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
 }
 
 .radarCanvas {
-  width: 270px;
-  height: 270px;
+  width: 280px;
+  height: 280px;
   border-radius: 50%;
   background: #020617;
   border: 2px solid var(--accent-primary);
@@ -382,7 +392,9 @@
   flex-direction: column;
   gap: 12px;
   height: 100%;
+  min-height: 0;
   overflow-y: auto;
+  justify-content: space-between;
 }
 
 .nav2Header {
@@ -432,11 +444,16 @@
 }
 
 @media (max-width: 768px) {
+  .terminalCard {
+    height: 560px;
+    min-height: 560px;
+  }
+
   .pubSubContainer,
   .lidarSessionContainer {
     grid-template-columns: 1fr;
     height: auto;
-    max-height: 480px;
+    overflow-y: auto;
   }
 
   .sideList {
