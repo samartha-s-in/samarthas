@@ -82,7 +82,7 @@ const Header = () => {
 
         {/* Mobile Hamburger Toggle */}
         <div className={styles.mobileActions}>
-          <ThemeToggle compact />
+          <ThemeToggle />
           <button
             className={styles.hamburger}
             onClick={() => setIsMenuOpen(!isMenuOpen)}
