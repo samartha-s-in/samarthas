@@ -1,23 +1,45 @@
 "use client";
 
 import { useState, FormEvent } from 'react';
+import confetti from 'canvas-confetti';
+import { personalInfo } from '@/lib/portfolioData';
+import { GithubIcon, LinkedinIcon } from '@/components/Common/Icons';
+import {
+  Mail,
+  Phone,
+  MapPin,
+  Send,
+  CheckCircle2,
+  AlertCircle,
+  Copy,
+  Check,
+} from 'lucide-react';
 import styles from './Contact.module.css';
-import Link from 'next/link';
-
-// (SVG Icons remain the same)
-const MailIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>;
-const PhoneIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>;
-
 
 export default function ContactPage() {
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [feedbackMessage, setFeedbackMessage] = useState('');
+  const [copiedEmail, setCopiedEmail] = useState(false);
+  const [copiedPhone, setCopiedPhone] = useState(false);
 
-  // (handleSubmit function remains the same)
+  const copyToClipboard = (text: string, type: 'email' | 'phone') => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text);
+      if (type === 'email') {
+        setCopiedEmail(true);
+        setTimeout(() => setCopiedEmail(false), 2000);
+      } else {
+        setCopiedPhone(true);
+        setTimeout(() => setCopiedPhone(false), 2000);
+      }
+    }
+  };
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setStatus('submitting');
-    const formData = new FormData(event.currentTarget);
+    const form = event.currentTarget;
+    const formData = new FormData(form);
     const object = Object.fromEntries(formData);
     const json = JSON.stringify(object);
 
@@ -26,7 +48,7 @@ export default function ContactPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          Accept: 'application/json',
         },
         body: json,
       });
@@ -35,68 +57,241 @@ export default function ContactPage() {
 
       if (result.success) {
         setStatus('success');
-        setFeedbackMessage("Thank you! Your message has been sent successfully.");
-        (event.target as HTMLFormElement).reset();
+        setFeedbackMessage("Thank you! Your message has been sent directly to Samartha S. I will respond promptly.");
+        form.reset();
+        confetti({
+          particleCount: 70,
+          spread: 60,
+          origin: { y: 0.6 },
+        });
       } else {
         setStatus('error');
-        setFeedbackMessage(result.message || 'An error occurred.');
+        setFeedbackMessage(result.message || 'An error occurred while transmitting your message.');
       }
     } catch {
       setStatus('error');
-      setFeedbackMessage('An unexpected error occurred.');
+      setFeedbackMessage('An unexpected network error occurred. Please contact via direct email.');
     }
   }
 
-
   return (
-    <div className="container">
-      <div className={styles.contactLayout}>
-        <div className={styles.infoSide}>
-          <h1 className={styles.pageTitle}>Get In Touch</h1>
-          <p className={styles.pageSubtitle}>
-            {/* Corrected the apostrophe in "I'm" to "I&apos;m" */}
-            I&apos;m open to discussing new projects, creative ideas, or opportunities. Feel free to reach out using the form or by using the contact details below.
+    <div className={`container ${styles.contactPage}`}>
+      {/* Header */}
+      <div className={styles.headerBlock}>
+        <span className={styles.eyebrow}>GET IN TOUCH</span>
+        <h1 className={styles.title}>
+          Let&apos;s Build Something <span className="gradient-text">Exceptional</span>
+        </h1>
+        <p className={styles.subtitle}>
+          Have an autonomous robotics project, technical training requirement, or research inquiry? Reach out directly using the form below or contact channels.
+        </p>
+      </div>
+
+      <div className={styles.layout}>
+        {/* Left Information Panel */}
+        <div className={`glass-panel ${styles.infoPanel}`}>
+          <div className="status-pill">
+            <span className="pulse-dot" />
+            <span>Open for Opportunities &amp; Training</span>
+          </div>
+
+          <h2 className={styles.infoHeading}>Contact Information</h2>
+          <p className={styles.infoDesc}>
+            Based in Bengaluru &amp; Vijayapura, India. Available for technical consultation, full-time robotics engineering roles, and custom hands-on workshops.
           </p>
-          <div className={styles.contactDetails}>
-            <div className={styles.contactItem}>
-                <MailIcon />
-                <a href="mailto:samarthas312@gmail.com">samarthas312@gmail.com</a>
+
+          <div className={styles.contactList}>
+            {/* Email Card */}
+            <div className={styles.contactItemCard}>
+              <div className={styles.itemIconBox}>
+                <Mail size={18} />
+              </div>
+              <div className={styles.itemContent}>
+                <span className={styles.itemLabel}>Primary Email</span>
+                <a href={`mailto:${personalInfo.email}`} className={styles.itemValue}>
+                  {personalInfo.email}
+                </a>
+              </div>
+              <button
+                onClick={() => copyToClipboard(personalInfo.email, 'email')}
+                className={styles.copyBtn}
+                title="Copy email"
+                aria-label="Copy email"
+              >
+                {copiedEmail ? <Check size={14} className={styles.copySuccess} /> : <Copy size={14} />}
+              </button>
             </div>
-            <div className={styles.contactItem}>
-                <PhoneIcon />
-                <span>(+91) 8861486949</span>
+
+            {/* Phone Card */}
+            <div className={styles.contactItemCard}>
+              <div className={styles.itemIconBox}>
+                <Phone size={18} />
+              </div>
+              <div className={styles.itemContent}>
+                <span className={styles.itemLabel}>Phone &amp; WhatsApp</span>
+                <a href={`tel:${personalInfo.phone.replace(/[^0-9+]/g, '')}`} className={styles.itemValue}>
+                  {personalInfo.phone}
+                </a>
+              </div>
+              <button
+                onClick={() => copyToClipboard(personalInfo.phone, 'phone')}
+                className={styles.copyBtn}
+                title="Copy phone"
+                aria-label="Copy phone"
+              >
+                {copiedPhone ? <Check size={14} className={styles.copySuccess} /> : <Copy size={14} />}
+              </button>
+            </div>
+
+            {/* Location Card */}
+            <div className={styles.contactItemCard}>
+              <div className={styles.itemIconBox}>
+                <MapPin size={18} />
+              </div>
+              <div className={styles.itemContent}>
+                <span className={styles.itemLabel}>Location</span>
+                <span className={styles.itemValue}>{personalInfo.location}</span>
+              </div>
             </div>
           </div>
-          <div className={styles.socialLinks}>
-            <Link href="https://www.linkedin.com/" target="_blank">LinkedIn</Link>
-            <Link href="https://github.com/samptec" target="_blank">GitHub</Link>
+
+          {/* Social Profiles */}
+          <div className={styles.socialBlock}>
+            <span className={styles.socialHeading}>Connect on Platforms</span>
+            <div className={styles.socialButtons}>
+              <a
+                href={personalInfo.github}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.socialPill}
+              >
+                <GithubIcon size={16} />
+                <span>GitHub (@samptec)</span>
+              </a>
+              <a
+                href={personalInfo.linkedin}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.socialPill}
+              >
+                <LinkedinIcon size={16} />
+                <span>LinkedIn</span>
+              </a>
+            </div>
           </div>
         </div>
 
-        <div className={styles.formSide}>
-            {/* ... (form JSX remains the same) ... */}
-            <form onSubmit={handleSubmit} className={styles.contactForm}>
-                <input type="hidden" name="access_key" value={process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY} />
-                <input type="hidden" name="subject" value="New Message from Portfolio Contact Form" />
-                <input type="checkbox" name="botcheck" className={styles.honeypot} style={{ display: 'none' }} />
-                <div className={styles.formGroup}>
-                    <label htmlFor="name">Full Name</label>
-                    <input type="text" id="name" name="name" required />
-                </div>
-                <div className={styles.formGroup}>
-                    <label htmlFor="email">Email Address</label>
-                    <input type="email" id="email" name="email" required />
-                </div>
-                <div className={styles.formGroup}>
-                    <label htmlFor="message">Message</label>
-                    <textarea id="message" name="message" rows={5} required></textarea>
-                </div>
-                <button type="submit" className={styles.submitButton} disabled={status === 'submitting'}>
-                    {status === 'submitting' ? 'Sending...' : 'Send Message'}
-                </button>
-                {status === 'success' && <p className={styles.successMessage}>{feedbackMessage}</p>}
-                {status === 'error' && <p className={styles.errorMessage}>{feedbackMessage}</p>}
-            </form>
+        {/* Right Contact Form */}
+        <div className={`glass-panel ${styles.formPanel}`}>
+          <h2 className={styles.formHeading}>Send a Direct Message</h2>
+          <p className={styles.formSubtitle}>
+            Fill out the details below and your inquiry will be dispatched straight to my primary inbox.
+          </p>
+
+          <form onSubmit={handleSubmit} className={styles.form}>
+            <input
+              type="hidden"
+              name="access_key"
+              value={process.env.NEXT_PUBLIC_WEB3FORMS_ACCESS_KEY || "e472251a-7b3b-482a-a924-f7b6b85d95e0"}
+            />
+            <input
+              type="hidden"
+              name="subject"
+              value="New Message from Samartha S Portfolio"
+            />
+            <input
+              type="checkbox"
+              name="botcheck"
+              style={{ display: 'none' }}
+            />
+
+            <div className={styles.formGroup}>
+              <label htmlFor="name" className={styles.label}>
+                Full Name <span className={styles.req}>*</span>
+              </label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                required
+                placeholder="e.g. Dr. Alex Morgan"
+                className={styles.input}
+              />
+            </div>
+
+            <div className={styles.formGroup}>
+              <label htmlFor="email" className={styles.label}>
+                Email Address <span className={styles.req}>*</span>
+              </label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                required
+                placeholder="alex@company.com"
+                className={styles.input}
+              />
+            </div>
+
+            <div className={styles.formGroup}>
+              <label htmlFor="topic" className={styles.label}>
+                Subject / Inquiry Domain
+              </label>
+              <input
+                type="text"
+                id="topic"
+                name="topic"
+                placeholder="Autonomous Navigation / Drone Project / Training Workshop"
+                className={styles.input}
+              />
+            </div>
+
+            <div className={styles.formGroup}>
+              <label htmlFor="message" className={styles.label}>
+                Message <span className={styles.req}>*</span>
+              </label>
+              <textarea
+                id="message"
+                name="message"
+                rows={5}
+                required
+                placeholder="Describe your vision, technical requirements, or schedule..."
+                className={styles.textarea}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={status === 'submitting'}
+              className={`btn-primary ${styles.submitBtn}`}
+            >
+              {status === 'submitting' ? (
+                <>
+                  <span className="pulse-dot" />
+                  <span>Transmitting...</span>
+                </>
+              ) : (
+                <>
+                  <Send size={16} />
+                  <span>Send Message</span>
+                </>
+              )}
+            </button>
+
+            {status === 'success' && (
+              <div className={styles.successAlert}>
+                <CheckCircle2 size={18} />
+                <span>{feedbackMessage}</span>
+              </div>
+            )}
+
+            {status === 'error' && (
+              <div className={styles.errorAlert}>
+                <AlertCircle size={18} />
+                <span>{feedbackMessage}</span>
+              </div>
+            )}
+          </form>
         </div>
       </div>
     </div>

@@ -1,176 +1,309 @@
-.contactLayout {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 5rem;
-    align-items: flex-start;
+.contactPage {
+  padding: 40px 0 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
 }
 
-.pageTitle {
-    font-size: 3.5rem;
-    margin-bottom: 1.5rem;
+.headerBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 720px;
 }
 
-.pageSubtitle {
-    font-size: 1.1rem;
-    line-height: 1.8;
-    margin-bottom: 2rem;
+.eyebrow {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--text-accent);
+  text-transform: uppercase;
+  font-family: var(--font-mono), monospace;
 }
 
-.socialLinks {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    font-size: 1.1rem;
-    font-weight: 500;
+.title {
+  font-size: clamp(2rem, 3.8vw, 3rem);
+  font-weight: 800;
+  line-height: 1.15;
 }
 
-.contactForm {
-    width: 100%;
+.subtitle {
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1.1fr 1.3fr;
+  gap: 32px;
+  align-items: start;
+}
+
+/*
+  ==============================================================
+  Left Information Panel
+  ==============================================================
+*/
+.infoPanel {
+  padding: 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.infoHeading {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.infoDesc {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.contactList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.contactItemCard {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: all 0.2s ease;
+}
+
+.contactItemCard:hover {
+  border-color: var(--accent-primary);
+}
+
+.itemIconBox {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--surface-muted);
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-primary);
+  flex-shrink: 0;
+}
+
+.itemContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-grow: 1;
+}
+
+.itemLabel {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.itemValue {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.itemValue:hover {
+  color: var(--accent-primary);
+}
+
+.copyBtn {
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 6px;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.copyBtn:hover {
+  color: var(--accent-primary);
+  border-color: var(--accent-primary);
+}
+
+.copySuccess {
+  color: var(--accent-emerald);
+}
+
+.socialBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.socialHeading {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.socialButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.socialPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.socialPill:hover {
+  color: var(--accent-primary);
+  border-color: var(--accent-primary);
+  background: var(--surface-muted);
+}
+
+/*
+  ==============================================================
+  Right Form Panel
+  ==============================================================
+*/
+.formPanel {
+  padding: 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.formHeading {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.formSubtitle {
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 8px;
 }
 
 .formGroup {
-    margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.formGroup label {
-    display: block;
-    margin-bottom: 0.5rem;
-    color: var(--text-secondary);
-    font-weight: 500;
+.label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
-.formGroup input,
-.formGroup textarea {
+.req {
+  color: #ef4444;
+}
+
+.input,
+.textarea {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-medium);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 0.92rem;
+  color: var(--text-primary);
+  outline: none;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.input:focus,
+.textarea:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.textarea {
+  resize: vertical;
+}
+
+.submitBtn {
+  margin-top: 8px;
+  width: fit-content;
+}
+
+.successAlert {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid var(--accent-emerald);
+  color: var(--accent-emerald);
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.errorAlert {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid #ef4444;
+  color: #ef4444;
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+@media (max-width: 960px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .infoPanel,
+  .formPanel {
+    padding: 24px 20px;
+  }
+  .submitBtn {
     width: 100%;
-    padding: 0.8rem 1rem;
-    background-color: var(--card-background);
-    border: 1px solid var(--border-color);
-    border-radius: 5px;
-    color: var(--text-primary);
-    font-family: var(--font-inter);
-    font-size: 1rem;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.formGroup input:focus,
-.formGroup textarea:focus {
-    outline: none;
-    border-color: var(--primary-accent);
-    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-}
-
-.submitButton {
-    width: 100%;
-    padding: 1rem;
-    background-color: var(--primary-accent);
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-}
-
-.submitButton:hover:not(:disabled) {
-    background-color: #0056b3; /* Darker blue */
-}
-
-.submitButton:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-/* This CSS class name matches the 'botcheck' input in the new form */
-.honeypot {
-    position: absolute;
-    left: -5000px;
-    visibility: hidden;
-}
-
-.successMessage, .errorMessage {
-    margin-top: 1rem;
-    text-align: center;
-    font-weight: 500;
-}
-
-.successMessage {
-    color: #28a745;
-}
-
-.errorMessage {
-    color: #dc3545;
-}
-
-/* Responsive adjustments */
-@media (max-width: 900px) {
-    .contactLayout {
-        grid-template-columns: 1fr;
-        gap: 3rem;
-    }
-    .infoSide {
-        text-align: center;
-    }
-    .socialLinks {
-        flex-direction: row;
-        justify-content: center;
-    }
-}
-
-.contactDetails {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem; /* Increased gap */
-    margin-bottom: 2rem;
-    font-size: 1.1rem;
-    font-weight: 500;
-}
-
-.contactItem {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    color: var(--text-secondary);
-}
-
-.contactItem svg {
-    color: var(--primary-accent);
-    flex-shrink: 0; /* Prevents icon from shrinking */
-}
-
-.contactItem a {
-    color: var(--text-secondary);
-    transition: color 0.2s ease;
-}
-
-.contactItem a:hover {
-    color: var(--primary-accent);
-    text-decoration: none;
-}
-/* END OF NEW STYLES */
-
-
-/* MODIFY THIS bestehenden STYLE */
-.socialLinks {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    font-size: 1.1rem;
-    font-weight: 500;
-    padding-top: 2rem; /* Add some space above */
-    border-top: 1px solid var(--border-color); /* Add a separator line */
-}
-
-/* ... (rest of the CSS remains the same) ... */
-
-/* MODIFY THIS inside the @media query */
-@media (max-width: 900px) {
-    /* ... */
-    .contactDetails {
-        align-items: center; /* Center items on mobile */
-    }
-    .socialLinks {
-        flex-direction: row;
-        justify-content: center;
-    }
+  }
 }

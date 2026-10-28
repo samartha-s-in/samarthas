@@ -1,62 +1,171 @@
 "use client";
 
-import { useState, useMemo } from 'react';
-import { projects, Project } from '@/lib/projectsData';
+import React, { useState, useMemo } from 'react';
+import { projects } from '@/lib/portfolioData';
+import { Project } from '@/lib/portfolioData';
+import ProjectModal from '@/components/Common/ProjectModal';
+import { GithubIcon } from '@/components/Common/Icons';
+import {
+  ExternalLink,
+  ArrowRight,
+  Search,
+  Calendar,
+} from 'lucide-react';
 import styles from './Projects.module.css';
-import Link from 'next/link';
-
-// Component for a single project card
-const ProjectCard = ({ project }: { project: Project }) => (
-  <Link href={`/projects/${project.slug}`} className={styles.card}>
-    <div>
-      <h3 className={styles.cardTitle}>{project.title}</h3>
-      <p className={styles.cardTagline}>{project.tagline}</p>
-    </div>
-    <div className={styles.techStack}>
-      {project.techStack.slice(0, 4).map(tech => (
-        <span key={tech} className={styles.techChip}>{tech}</span>
-      ))}
-    </div>
-  </Link>
-);
 
 export default function ProjectsPage() {
   const [activeFilter, setActiveFilter] = useState<string>('All');
-  const categories = ['All', 'Robotics & ROS', 'AI & CV', 'IoT', 'CAD'];
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+
+  const categories = [
+    'All',
+    'Robotics & ROS',
+    'Drones & UAVs',
+    'AI & CV',
+    'Embedded & IoT',
+    'CAD & 3D',
+    'Web Dev',
+  ];
 
   const filteredProjects = useMemo(() => {
-    if (activeFilter === 'All') {
-      return projects;
-    }
-    return projects.filter(p => p.category === activeFilter);
-  }, [activeFilter]);
+    return projects.filter((project) => {
+      const matchesCategory = activeFilter === 'All' || project.category === activeFilter;
+      const query = searchQuery.toLowerCase().trim();
+      const matchesSearch =
+        !query ||
+        project.title.toLowerCase().includes(query) ||
+        project.tagline.toLowerCase().includes(query) ||
+        project.description.toLowerCase().includes(query) ||
+        project.techStack.some((tech) => tech.toLowerCase().includes(query));
+
+      return matchesCategory && matchesSearch;
+    });
+  }, [activeFilter, searchQuery]);
 
   return (
-    <div className="container">
-      <h1 className={styles.pageTitle}>Our Work & Innovations</h1>
-      <p className={styles.pageSubtitle}>
-        A selection of projects that demonstrate our expertise in robotics, artificial intelligence, and automation.
-      </p>
+    <div className={`container ${styles.projectsPage}`}>
+      {/* Page Header */}
+      <div className={styles.pageHeader}>
+        <span className={styles.eyebrow}>INNOVATION SHOWCASE</span>
+        <h1 className={styles.title}>
+          Robotics &amp; <span className="gradient-text">Autonomous Systems</span>
+        </h1>
+        <p className={styles.subtitle}>
+          A portfolio of production-grade robotics hardware, autonomous drone flight algorithms, computer vision pipelines, and embedded IoT architectures.
+        </p>
+      </div>
 
-      {/* Filter Buttons */}
-      <div className={styles.filterContainer}>
-        {categories.map(category => (
-          <button
-            key={category}
-            className={`${styles.filterButton} ${activeFilter === category ? styles.active : ''}`}
-            onClick={() => setActiveFilter(category)}
-          >
-            {category}
-          </button>
-        ))}
+      {/* Filter and Search Bar */}
+      <div className={styles.controlBar}>
+        <div className={styles.categoryFilters}>
+          {categories.map((category) => (
+            <button
+              key={category}
+              className={`${styles.filterButton} ${activeFilter === category ? styles.activeFilter : ''}`}
+              onClick={() => setActiveFilter(category)}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+
+        <div className={styles.searchWrapper}>
+          <Search size={16} className={styles.searchIcon} />
+          <input
+            type="text"
+            placeholder="Search projects by tech (e.g. ROS, LiDAR)..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className={styles.searchInput}
+          />
+        </div>
       </div>
 
       {/* Projects Grid */}
-      <div className={styles.projectsGrid}>
-        {filteredProjects.map(project => (
-          <ProjectCard key={project.slug} project={project} />
-        ))}
+      <div className={styles.grid}>
+        {filteredProjects.length > 0 ? (
+          filteredProjects.map((project) => (
+            <div key={project.slug} className={`glass-panel ${styles.card}`}>
+              <div className={styles.cardHeader}>
+                <span className={styles.categoryBadge}>{project.category}</span>
+                {project.date && (
+                  <span className={styles.dateLabel}>
+                    <Calendar size={12} />
+                    {project.date}
+                  </span>
+                )}
+              </div>
+
+              <h2 className={styles.cardTitle}>{project.title}</h2>
+              <p className={styles.cardTagline}>{project.tagline}</p>
+              <p className={styles.cardDescription}>{project.description}</p>
+
+              <div className={styles.techStack}>
+                {project.techStack.map((tech) => (
+                  <span key={tech} className="tech-chip">
+                    {tech}
+                  </span>
+                ))}
+              </div>
+
+              <div className={styles.cardFooter}>
+                <button
+                  onClick={() => setSelectedProject(project)}
+                  className={styles.specsBtn}
+                >
+                  <span>System Architecture</span>
+                  <ArrowRight size={14} />
+                </button>
+
+                <div className={styles.linksCluster}>
+                  {project.liveUrl && (
+                    <a
+                      href={project.liveUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.actionIcon}
+                      title="View Demo / Google Drive Files"
+                    >
+                      <ExternalLink size={16} />
+                    </a>
+                  )}
+                  {project.githubUrl && (
+                    <a
+                      href={project.githubUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.actionIcon}
+                      title="View GitHub Repository"
+                    >
+                      <GithubIcon size={16} />
+                    </a>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className={styles.emptyState}>
+            <p>No projects matched your search criteria.</p>
+            <button
+              onClick={() => {
+                setActiveFilter('All');
+                setSearchQuery('');
+              }}
+              className="btn-secondary"
+            >
+              Reset Filters
+            </button>
+          </div>
+        )}
       </div>
+
+      {/* Project Detail Modal */}
+      <ProjectModal
+        project={selectedProject}
+        onClose={() => setSelectedProject(null)}
+      />
     </div>
   );
 }

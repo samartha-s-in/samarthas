@@ -2,58 +2,134 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useTheme } from '@/components/Common/ThemeProvider';
+import { usePathname } from 'next/navigation';
+import ThemeToggle from '@/components/Common/ThemeToggle';
+import { FileDown, Menu, X, Bot } from 'lucide-react';
 import styles from './Header.module.css';
 
-// (SVG Icons for the theme toggle remain the same)
-const SunIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>;
-const MoonIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>;
-
-
 const Header = () => {
-  const { theme, toggleTheme } = useTheme();
-  // State to manage mobile menu visibility
+  const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
-  // Effect to prevent body scroll when the mobile menu is open
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   useEffect(() => {
     if (isMenuOpen) {
       document.body.classList.add('no-scroll');
     } else {
       document.body.classList.remove('no-scroll');
     }
+    return () => document.body.classList.remove('no-scroll');
   }, [isMenuOpen]);
 
+  const navLinks = [
+    { href: '/', label: 'Overview' },
+    { href: '/about', label: 'About & Journey' },
+    { href: '/projects', label: 'Projects & Innovations' },
+    { href: '/#publication', label: 'IEEE Research' },
+    { href: '/blog', label: 'Articles' },
+    { href: '/contact', label: 'Contact' },
+  ];
+
   return (
-    <header className={styles.header}>
+    <header className={`${styles.header} ${scrolled ? styles.scrolled : ''}`}>
       <nav className={`${styles.nav} container`}>
+        {/* Logo & Identity */}
         <Link href="/" className={styles.logo} onClick={() => setIsMenuOpen(false)}>
-          Samartha S.
+          <div className={styles.logoIcon}>
+            <Bot size={20} className={styles.botIcon} />
+            <span className={styles.statusDot} />
+          </div>
+          <div className={styles.logoText}>
+            <span className={styles.name}>Samartha S.</span>
+            <span className={styles.roleTitle}>Robotics & AI</span>
+          </div>
         </Link>
-        
-        {/* Navigation links with conditional class for mobile */}
-        <div className={`${styles.navLinks} ${isMenuOpen ? styles.open : ''}`}>
-          <Link href="/about" onClick={() => setIsMenuOpen(false)}>About</Link>
-          <Link href="/projects" onClick={() => setIsMenuOpen(false)}>Projects</Link>
-          <Link href="/blog" onClick={() => setIsMenuOpen(false)}>Blog</Link>
-          <Link href="/contact" onClick={() => setIsMenuOpen(false)}>Contact</Link>
-          <Link href="/resume" className={styles.resumeButton} onClick={() => setIsMenuOpen(false)}>Resume</Link>
-          <button onClick={toggleTheme} className={styles.themeToggle} aria-label="Toggle theme">
-            {theme === 'light' ? <MoonIcon /> : <SunIcon />}
-          </button>
+
+        {/* Desktop Nav Items */}
+        <div className={styles.desktopNav}>
+          <div className={styles.linksRow}>
+            {navLinks.map((link) => {
+              const isActive = pathname === link.href;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`${styles.navLink} ${isActive ? styles.activeLink : ''}`}
+                >
+                  {link.label}
+                  {isActive && <span className={styles.activeIndicator} />}
+                </Link>
+              );
+            })}
+          </div>
+
+          <div className={styles.actionCluster}>
+            <ThemeToggle />
+            <Link href="/resume" className={styles.resumeBtn}>
+              <FileDown size={16} />
+              <span>Resume</span>
+            </Link>
+          </div>
         </div>
 
-        {/* Hamburger Menu Button */}
-        <button 
-          className={`${styles.hamburger} ${isMenuOpen ? styles.open : ''}`} 
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          aria-label="Toggle navigation menu"
-        >
-          <span className={styles.bar}></span>
-          <span className={styles.bar}></span>
-          <span className={styles.bar}></span>
-        </button>
+        {/* Mobile Hamburger Toggle */}
+        <div className={styles.mobileActions}>
+          <ThemeToggle compact />
+          <button
+            className={styles.hamburger}
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label="Toggle navigation drawer"
+            aria-expanded={isMenuOpen}
+          >
+            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
       </nav>
+
+      {/* Mobile Drawer */}
+      <div className={`${styles.mobileDrawer} ${isMenuOpen ? styles.drawerOpen : ''}`}>
+        <div className={styles.drawerContent}>
+          <div className={styles.drawerSectionHeader}>
+            <span className={styles.sectionHeaderLabel}>NAVIGATION</span>
+          </div>
+          <div className={styles.drawerLinks}>
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`${styles.drawerLink} ${pathname === link.href ? styles.activeDrawerLink : ''}`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <span>{link.label}</span>
+              </Link>
+            ))}
+          </div>
+
+          <div className={styles.drawerFooter}>
+            <div className={styles.themeRow}>
+              <span className={styles.themeLabel}>Theme Preference</span>
+              <ThemeToggle />
+            </div>
+
+            <Link
+              href="/resume"
+              className={styles.drawerResumeBtn}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              <FileDown size={18} />
+              <span>Download Full CV (PDF)</span>
+            </Link>
+          </div>
+        </div>
+      </div>
     </header>
   );
 };

@@ -1,123 +1,235 @@
 "use client";
 
-import { useEffect, useRef } from 'react';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import React from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import {
+  personalInfo,
+  workExperience,
+  educationList,
+} from '@/lib/portfolioData';
+import {
+  Bot,
+  GraduationCap,
+  Briefcase,
+  MapPin,
+  ExternalLink,
+  Languages,
+  Heart,
+  FileDown,
+  CheckCircle2,
+  Mail,
+  Award,
+} from 'lucide-react';
 import styles from './About.module.css';
-import Timeline from '@/components/Sections/Timeline';
-
-gsap.registerPlugin(ScrollTrigger);
-
-// Data arrays remain the same
-const workExperience = [
-  {
-    date: 'June 2025 - Current',
-    title: 'Research Associate',
-    company: 'Center of Robotic Research, Nitte Meenakshi Institute of Technology',
-    description: 'Actively involved in developing and testing advanced robotic systems, focusing on autonomous navigation algorithms using ROS/ROS 2, and integrating sensors for real-time applications.'
-  },
-  {
-    date: 'June 2025 - Current',
-    title: 'Robotics Software Engineer',
-    company: 'Newrro Tech LLP',
-    description: 'Designing and programming robotic systems using ROS. Responsibilities include mechanical design, sensor integration, implementing navigation algorithms, and simulation testing.'
-  },
-  {
-    date: 'Jan 2025 - Apr 2025',
-    title: 'Intern - Robotics Developer',
-    company: 'Newrro Tech LLP',
-    description: 'Worked on designing and programming robotic systems using ROS 1 and ROS 2, creating mechanical designs, and implementing navigation algorithms.'
-  },
-  {
-    date: 'Oct 2022 - Apr 2023',
-    title: 'Intern - Mechanical and IoT Electronics Design Engineer',
-    company: 'Drona Automations Pvt Ltd',
-    description: 'Served as a Mechanical Designer and Electronics Engineer, using CATIA for product design and working on IoT boards for sewage cleaning robots.'
-  }
-];
-
-const education = [
-    {
-        date: '2022 - 2025',
-        title: "Bachelor's in Technology in Robotics and Automation",
-        company: 'REVA University, Bengaluru',
-        description: 'Gained a multidisciplinary education in mechanical systems, electronics, computer programming, and AI. Acquired practical experience with Arduino, Raspberry Pi, IoT systems, ROS, and more.'
-    },
-    {
-        date: '2018 - 2020',
-        title: 'Pre-University Education (Physics, Chemistry, Mathematics and Biology)',
-        company: 'Mahaveer Jain PU College, Jayanagar',
-        description: 'Completed pre-university studies with a final grade of 77.6%.'
-    }
-];
-
-const skills = {
-    "Robotics & AI": ["ROS/ROS2", "ROS Navigation", "SLAM", "MAVROS", "PX4", "Computer Vision", "OpenCV", "Machine Learning", "Deep Learning", "Control Systems"],
-    "Software & Tools": ["Python", "C++", "Linux", "Git", "TensorFlow", "Keras", "Pandas", "Numpy", "MATLAB", "Scikit-Learn"],
-    "Hardware & CAD": ["Arduino", "Raspberry Pi", "Jetson TX2", "ESP32", "Pixhawk", "PCB Design (KiCad, EasyEDA)", "CATIA", "Fusion 360", "3D Modeling"]
-};
-
 
 export default function AboutPage() {
-    const pageRef = useRef(null);
+  return (
+    <div className={`container ${styles.aboutPage}`}>
+      {/* Header Profile Hero */}
+      <section className={`glass-panel ${styles.introCard}`}>
+        <div className={styles.introFlex}>
+          <div className={styles.avatarWrapper}>
+            <Image
+              src="/samartha.png"
+              alt="Samartha S - Robotics Engineer"
+              width={220}
+              height={220}
+              priority
+              className={styles.avatarImg}
+            />
+            <div className={styles.avatarBadge}>
+              <Bot size={16} />
+              <span>Robotics &amp; AI</span>
+            </div>
+          </div>
 
-    useEffect(() => {
-        // THE FIX IS HERE: We specify the type <Element> for toArray
-        const sections = gsap.utils.toArray<Element>('.animated-section');
-        
-        sections.forEach((section) => {
-            gsap.fromTo(section,
-                { y: 50, opacity: 0 },
-                {
-                    y: 0,
-                    opacity: 1,
-                    duration: 1,
-                    ease: 'power3.out',
-                    scrollTrigger: {
-                        trigger: section,
-                        start: 'top 85%',
-                        toggleActions: 'play none none none'
-                    }
-                }
-            );
-        });
-    }, []);
+          <div className={styles.introInfo}>
+            <div className="status-pill">
+              <span className="pulse-dot" />
+              <span>Robotics Engineer &amp; Researcher</span>
+            </div>
 
-    return (
-        <div ref={pageRef} className="container">
-            <section className={`${styles.introSection} animated-section`}>
-                <div className={styles.introText}>
-                    <h1 className={styles.pageTitle}>About Me</h1>
-                    <p>As a highly motivated and analytical Robotics Engineer, I bring a strong academic foundation and hands-on experience in designing, developing, and implementing innovative robotic systems and IoT-based solutions. My expertise spans mechanical design, embedded systems, and software development, with proven proficiency in Python, ROS/ROS2, PCB Design, and CAD tools like CATIA and Fusion360.</p>
-                    <p>I am passionate about automation and problem-solving using cutting-edge technologies, eager to contribute to challenging projects in robotics, autonomous systems, and AI to deliver impactful and efficient solutions.</p>
-                </div>
-                <div className={styles.introImage}>
-                    <div className={styles.imagePlaceholder}>
-                        Your Professional Photo
-                    </div>
-                </div>
-            </section>
-            <section className="animated-section">
-                <h2 className={styles.sectionTitle}>Career Journey</h2>
-                <Timeline items={workExperience} />
-            </section>
-            <section className="animated-section">
-                <h2 className={styles.sectionTitle}>Education</h2>
-                <Timeline items={education} />
-            </section>
-            <section className={`${styles.skillsSection} animated-section`}>
-                <h2 className={styles.sectionTitle}>Technical Skills</h2>
-                <div className={styles.skillsGrid}>
-                    {Object.entries(skills).map(([category, skillList]) => (
-                        <div key={category} className={styles.skillCategory}>
-                            <h3>{category}</h3>
-                            <ul>
-                                {skillList.map(skill => <li key={skill}>{skill}</li>)}
-                            </ul>
-                        </div>
-                    ))}
-                </div>
-            </section>
+            <h1 className={styles.introName}>{personalInfo.name}</h1>
+            <h2 className={styles.introTitle}>
+              <span className="gradient-text">{personalInfo.title}</span>
+            </h2>
+
+            <p className={styles.introBio}>
+              {personalInfo.bio}
+            </p>
+
+            <div className={styles.quickDetailsRow}>
+              <div className={styles.detailPill}>
+                <MapPin size={14} />
+                <span>{personalInfo.location}</span>
+              </div>
+              <div className={styles.detailPill}>
+                <Award size={14} />
+                <span>REVA Univ (8.21 CGPA)</span>
+              </div>
+              <div className={styles.detailPill}>
+                <Mail size={14} />
+                <span>{personalInfo.email}</span>
+              </div>
+            </div>
+
+            <div className={styles.introActions}>
+              <Link href="/contact" className="btn-primary">
+                <span>Connect with Me</span>
+              </Link>
+              <a
+                href={personalInfo.resumePdf}
+                download="SamarthaS_CV.pdf"
+                className="btn-secondary"
+              >
+                <FileDown size={16} />
+                <span>Download Full CV</span>
+              </a>
+            </div>
+          </div>
         </div>
-    );
+      </section>
+
+      {/* Work Experience & Research Timeline */}
+      <section id="experience" className={styles.sectionBlock}>
+        <div className={styles.sectionHeader}>
+          <div className={styles.iconCircle}>
+            <Briefcase size={22} />
+          </div>
+          <div>
+            <span className={styles.eyebrow}>CAREER CHRONOLOGY</span>
+            <h2 className={styles.sectionTitle}>
+              Work Experience &amp; <span className="gradient-text">Research Fellowship</span>
+            </h2>
+          </div>
+        </div>
+
+        <div className={styles.timelineContainer}>
+          {workExperience.map((exp, idx) => (
+            <div key={idx} className={`glass-panel ${styles.timelineItem}`}>
+              <div className={styles.itemHeader}>
+                <div>
+                  <span className={styles.typeTag}>{exp.type}</span>
+                  <h3 className={styles.itemRole}>{exp.role}</h3>
+                  <h4 className={styles.itemOrg}>
+                    {exp.company} {exp.department ? `• ${exp.department}` : ''}
+                  </h4>
+                </div>
+                <div className={styles.itemMeta}>
+                  <span className={styles.itemPeriod}>{exp.period}</span>
+                  <span className={styles.itemLocation}>{exp.location}</span>
+                </div>
+              </div>
+
+              <p className={styles.itemDescription}>{exp.description}</p>
+
+              <ul className={styles.itemHighlights}>
+                {exp.highlights.map((h, hIdx) => (
+                  <li key={hIdx}>
+                    <CheckCircle2 size={15} className={styles.bulletCheck} />
+                    <span>{h}</span>
+                  </li>
+                ))}
+              </ul>
+
+              {exp.link && (
+                <div className={styles.itemFooter}>
+                  <a
+                    href={exp.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.certLink}
+                  >
+                    <ExternalLink size={14} />
+                    <span>View Official Association Verification</span>
+                  </a>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Education & Academic Foundation */}
+      <section className={styles.sectionBlock}>
+        <div className={styles.sectionHeader}>
+          <div className={styles.iconCircle}>
+            <GraduationCap size={22} />
+          </div>
+          <div>
+            <span className={styles.eyebrow}>ACADEMIC EXCELLENCE</span>
+            <h2 className={styles.sectionTitle}>
+              Education &amp; <span className="gradient-text">Engineering Training</span>
+            </h2>
+          </div>
+        </div>
+
+        <div className={styles.timelineContainer}>
+          {educationList.map((edu, idx) => (
+            <div key={idx} className={`glass-panel ${styles.timelineItem}`}>
+              <div className={styles.itemHeader}>
+                <div>
+                  <h3 className={styles.itemRole}>{edu.degree}</h3>
+                  <h4 className={styles.itemOrg}>
+                    {edu.institution} • {edu.location}
+                  </h4>
+                </div>
+                <div className={styles.itemMeta}>
+                  <span className={styles.gradeBadge}>{edu.grade}</span>
+                  <span className={styles.itemPeriod}>{edu.period}</span>
+                </div>
+              </div>
+
+              <p className={styles.itemDescription}>{edu.details}</p>
+
+              <ul className={styles.itemHighlights}>
+                {edu.highlights.map((h, hIdx) => (
+                  <li key={hIdx}>
+                    <CheckCircle2 size={15} className={styles.bulletCheck} />
+                    <span>{h}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Languages & Interests Grid */}
+      <section className={styles.dualBlock}>
+        {/* Languages */}
+        <div className={`glass-panel ${styles.sideCard}`}>
+          <div className={styles.sideCardHeader}>
+            <Languages size={20} className={styles.sideIcon} />
+            <h3 className={styles.sideTitle}>Language Proficiency</h3>
+          </div>
+          <div className={styles.languagesList}>
+            {personalInfo.languages.map((lang) => (
+              <div key={lang.language} className={styles.languageRow}>
+                <span className={styles.langName}>{lang.language}</span>
+                <span className={styles.langProficiency}>{lang.proficiency}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Interests & Pursuits */}
+        <div className={`glass-panel ${styles.sideCard}`}>
+          <div className={styles.sideCardHeader}>
+            <Heart size={20} className={styles.sideIcon} />
+            <h3 className={styles.sideTitle}>Technical Pursuits &amp; Interests</h3>
+          </div>
+          <div className={styles.interestsList}>
+            {personalInfo.interests.map((interest, idx) => (
+              <div key={idx} className={styles.interestPill}>
+                <span className="pulse-dot" />
+                <span>{interest}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    </div>
+  );
 }

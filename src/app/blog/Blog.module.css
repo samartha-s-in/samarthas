@@ -1,61 +1,93 @@
+.blogPage {
+  padding: 40px 0 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 720px;
+}
+
+.eyebrow {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--text-accent);
+  text-transform: uppercase;
+  font-family: var(--font-mono), monospace;
+}
+
 .pageTitle {
-    text-align: center;
-    font-size: 3.5rem;
-    margin-bottom: 1rem;
+  font-size: clamp(2rem, 3.8vw, 3rem);
+  font-weight: 800;
+  line-height: 1.15;
 }
 
 .pageSubtitle {
-    text-align: center;
-    max-width: 600px;
-    margin: 0 auto 3rem auto;
-    font-size: 1.2rem;
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
 }
 
 .postsList {
-    display: grid;
-    gap: 2rem;
-    max-width: 800px;
-    margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 860px;
 }
 
 .postCard {
-    display: block;
-    background-color: var(--card-background);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 2rem;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-decoration: none;
 }
 
-.postCard:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-    border-color: var(--primary-accent);
-    text-decoration: none;
+.postMetaRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono), monospace;
 }
 
-.postDate {
-    display: block;
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-    margin-bottom: 0.5rem;
+.postDate,
+.readTime {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .postTitle {
-    font-size: 2rem;
-    color: var(--text-primary);
-    margin-bottom: 1rem;
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.3;
 }
 
 .postExcerpt {
-    color: var(--text-secondary);
-    font-size: 1.1rem;
-    line-height: 1.7;
+  color: var(--text-secondary);
+  font-size: 0.96rem;
+  line-height: 1.65;
 }
 
-.readMore {
-    display: inline-block;
-    margin-top: 1.5rem;
-    color: var(--primary-accent);
-    font-weight: 600;
+.cardAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent-primary);
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin-top: 8px;
+  transition: all 0.2s ease;
+}
+
+.postCard:hover .cardAction {
+  gap: 10px;
 }

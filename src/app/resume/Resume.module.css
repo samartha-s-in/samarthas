@@ -1,49 +1,330 @@
-.header {
-    text-align: center;
-    margin-bottom: 3rem;
+.resumePage {
+  padding: 40px 0 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
 }
 
-.pageTitle {
-    font-size: 3.5rem;
-    margin-bottom: 1rem;
+.headerCard {
+  padding: 36px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 24px;
 }
 
-.pageSubtitle {
-    font-size: 1.2rem;
-    max-width: 600px;
-    margin: 0 auto 2rem auto;
-    color: var(--text-secondary);
+.headerInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.downloadButton {
-    display: inline-block;
-    padding: 1rem 2.5rem;
-    background-color: var(--primary-accent);
-    color: #fff;
-    border: 1px solid var(--primary-accent);
-    border-radius: 5px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
-    font-family: var(--font-inter);
+.eyebrow {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--text-accent);
+  text-transform: uppercase;
+  font-family: var(--font-mono), monospace;
 }
 
-.downloadButton:hover {
-    background-color: #0056b3; /* Darker blue */
-    border-color: #0056b3;
-    text-decoration: none;
-    color: #fff;
+.title {
+  font-size: clamp(2rem, 3.4vw, 2.6rem);
+  font-weight: 800;
+  line-height: 1.15;
 }
 
-.resumeViewer {
-    width: 100%;
-    height: 100vh; /* Make the viewer take up a lot of vertical space */
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    overflow: hidden; /* Ensures the rounded corners apply to the content */
+.subtitle {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
 }
 
-.resumeViewer object {
-    display: block; /* Removes any default spacing */
+.controlsRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.modeSwitch {
+  display: inline-flex;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 9999px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.modeBtn {
+  background: transparent;
+  border: none;
+  border-radius: 9999px;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modeBtn:hover {
+  color: var(--text-primary);
+}
+
+.activeMode {
+  background: var(--surface-active);
+  color: var(--accent-primary) !important;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/*
+  ==============================================================
+  Interactive Document (ATS View)
+  ==============================================================
+*/
+.interactiveDoc {
+  padding: 48px 56px;
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+}
+
+.cvContactBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.cvContactItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.cvContactItem a {
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.cvContactItem a:hover {
+  color: var(--accent-primary);
+}
+
+.cvSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cvHeadingRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.headingIcon {
+  color: var(--accent-primary);
+}
+
+.cvHeading {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 8px;
+  width: 100%;
+}
+
+.cvText {
+  font-size: 0.98rem;
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
+
+.cvList {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.cvItem {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cvItemHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.cvItemRole {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.cvItemCompany {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.cvItemMeta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.cvPeriod {
+  font-size: 0.82rem;
+  font-family: var(--font-mono), monospace;
+  font-weight: 600;
+  color: var(--accent-primary);
+}
+
+.cvLocation {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.cvGradeBadge {
+  background: var(--surface-muted);
+  border: 1px solid var(--border-subtle);
+  color: var(--accent-primary);
+  font-size: 0.75rem;
+  font-family: var(--font-mono), monospace;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.cvItemDesc {
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.cvHighlights {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.cvHighlights li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.cvCheck {
+  color: var(--accent-emerald);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.cvSkillsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.cvSkillBox {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cvSkillCategory {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.cvSkillList {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/*
+  ==============================================================
+  PDF Viewer
+  ==============================================================
+*/
+.pdfViewerCard {
+  width: 100%;
+  height: 900px;
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+}
+
+.pdfObject {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.fallbackMsg {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 16px;
+  padding: 40px;
+  text-align: center;
+}
+
+@media print {
+  .controlsRow {
+    display: none !important;
+  }
+  .interactiveDoc {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .interactiveDoc {
+    padding: 28px 20px;
+  }
+  .headerCard {
+    padding: 24px 20px;
+  }
+  .cvSkillsGrid {
+    grid-template-columns: 1fr;
+  }
+  .cvItemMeta {
+    align-items: flex-start;
+  }
 }

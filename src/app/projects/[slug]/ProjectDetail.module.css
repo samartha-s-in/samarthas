@@ -1,106 +1,181 @@
-.projectHeader {
-    text-align: center;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 3rem;
-    margin-bottom: 3rem;
+.detailPage {
+  padding: 40px 0 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
 }
 
-.category {
-    font-family: var(--font-inter);
-    color: var(--primary-accent);
-    font-weight: 600;
-    margin-bottom: 1rem;
-    display: block;
+.backNav {
+  display: flex;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  transition: all 0.2s ease;
+}
+
+.backLink:hover {
+  color: var(--accent-primary);
+  transform: translateX(-3px);
+}
+
+.headerCard {
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.categoryRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.categoryPill {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  background: var(--surface-muted);
+  border: 1px solid var(--border-subtle);
+  color: var(--accent-primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.dateLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-family: var(--font-mono), monospace;
+  color: var(--text-muted);
 }
 
 .title {
-    font-size: 3.5rem;
-    margin-bottom: 1.5rem;
+  font-size: clamp(1.8rem, 3.2vw, 2.6rem);
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.25;
 }
 
 .tagline {
-    font-size: 1.3rem;
-    max-width: 700px;
-    margin: 0 auto;
-    color: var(--text-secondary);
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
 }
 
-.contentBody {
-    display: flex;
-    gap: 4rem;
+.actionsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
 }
 
-.mainContent {
-    flex: 3;
+.contentLayout {
+  display: grid;
+  grid-template-columns: 1.8fr 1fr;
+  gap: 28px;
+  align-items: start;
 }
 
-.mainContent h2 {
-    font-size: 2rem;
-    margin-bottom: 1.5rem;
+.mainCol {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
-.mainContent p {
-    font-size: 1.1rem;
-    line-height: 1.8;
+.contentCard {
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sectionHeading {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 12px;
+}
+
+.narrative {
+  font-size: 1.02rem;
+  line-height: 1.8;
+  color: var(--text-secondary);
+}
+
+.highlightsList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.highlightItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.checkIcon {
+  color: var(--accent-emerald);
+  flex-shrink: 0;
+  margin-top: 3px;
 }
 
 .sidebar {
-    flex: 1;
-    position: sticky;
-    top: 150px;
-    align-self: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
-.sidebarModule {
-    background-color: var(--card-background);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 1.5rem;
-    margin-bottom: 2rem;
+.sidebarCard {
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.sidebarModule h3 {
-    font-family: var(--font-inter);
-    font-weight: 600;
-    font-size: 1.2rem;
-    margin-bottom: 1rem;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 0.7rem;
+.sidebarTitle {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 10px;
 }
 
-.techList {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+.techGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
-.techChip {
-    background-color: var(--border-color);
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-    padding: 0.4rem 0.8rem;
-    border-radius: 5px;
+.sidebarText {
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
 }
 
-.links {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.projectLink {
-    color: var(--primary-accent);
-    font-weight: 500;
-}
-
-/* Responsive adjustments */
 @media (max-width: 900px) {
-    .contentBody {
-        flex-direction: column;
-        gap: 3rem;
-    }
-    .sidebar {
-        position: static;
-        top: auto;
-    }
+  .contentLayout {
+    grid-template-columns: 1fr;
+  }
+  .headerCard {
+    padding: 28px 20px;
+  }
+  .contentCard {
+    padding: 24px 20px;
+  }
 }

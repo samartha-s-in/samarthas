@@ -1,56 +1,109 @@
-.post {
-    max-width: 800px;
-    margin: 0 auto;
+.postContainer {
+  padding: 40px 0 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 860px;
+}
+
+.backNav {
+  display: flex;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  transition: all 0.2s ease;
+}
+
+.backLink:hover {
+  color: var(--accent-primary);
+  transform: translateX(-3px);
+}
+
+.postArticle {
+  padding: 44px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
 }
 
 .postHeader {
-    text-align: center;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 2rem;
-    margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 24px;
 }
 
 .postTitle {
-    font-size: 3.5rem;
-    line-height: 1.2;
-    margin-bottom: 1rem;
+  font-size: clamp(1.8rem, 3.2vw, 2.5rem);
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.25;
 }
 
-.postMeta {
-    color: var(--text-secondary);
+.postMetaRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 20px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono), monospace;
+}
+
+.metaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .postBody {
-    font-size: 1.2rem;
-    line-height: 1.8;
-}
-
-/* Styling for content coming from MDX */
-.postBody > * + * {
-    margin-top: 1.5em;
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .postBody h2 {
-    font-size: 2.2rem;
-    margin-top: 2em;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-top: 20px;
 }
 
 .postBody h3 {
-    font-size: 1.8rem;
-    margin-top: 1.8em;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-top: 14px;
 }
 
-.postBody a {
-    text-decoration: underline;
+.postBody strong {
+  color: var(--text-primary);
 }
 
-.postBody code {
-    background-color: var(--card-background);
-    padding: 0.2em 0.4em;
-    border-radius: 4px;
-    font-size: 0.9em;
+.postBody ul,
+.postBody ol {
+  padding-left: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.postBody ul {
-    list-style-position: inside;
+.postBody li {
+  line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .postArticle {
+    padding: 28px 20px;
+  }
 }
