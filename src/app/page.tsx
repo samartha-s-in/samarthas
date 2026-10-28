@@ -22,6 +22,8 @@ import PCBCircuitBoard from '@/components/3D/PCBCircuitBoard';
 import CADBlueprintViewer from '@/components/Robotics/CADBlueprintViewer';
 import ROSTerminal from '@/components/Robotics/ROSTerminal';
 import VisualServoingSimulator from '@/components/Robotics/VisualServoingSimulator';
+import RobotScrollPath from '@/components/3D/RobotScrollPath';
+import PCB3DFlipShowcase from '@/components/3D/PCB3DFlipShowcase';
 import { GithubIcon } from '@/components/Common/Icons';
 import {
   Bot,
@@ -275,6 +277,22 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* 3D AUTONOMOUS ROBOT SCROLL MISSION (ThreeUI Style) */}
+      <section className={styles.scrollJourneySection} id="mission-track">
+        <div className="container">
+          <div className={styles.sectionHeaderCenter}>
+            <span className={styles.sectionEyebrow}>THREEUI INTERACTIVE 3D EXPERIENCE</span>
+            <h2 className={styles.sectionHeading}>
+              Autonomous Navigation <span className="gradient-text">Mission Corridor</span>
+            </h2>
+            <p className={styles.sectionSubtitle}>
+              Scroll or use the scrubber below to drive the autonomous rover along its mission path. Watch the robot navigate waypoints with dynamic telemetry and alternating holographic mission logs.
+            </p>
+          </div>
+          <RobotScrollPath />
+        </div>
+      </section>
+
       {/* 3D ROBOTICS & VIBE CODING WORKSTATION LAB */}
       <section id="lab" className={`section-padding ${styles.labSection}`}>
         <div className="container">
@@ -335,6 +353,13 @@ export default function HomePage() {
             {activeLabTab === 'catia' && <CADBlueprintViewer />}
             {activeLabTab === 'ros' && <ROSTerminal />}
           </div>
+        </div>
+      </section>
+
+      {/* 3D PCB PERSPECTIVE FLIP SHOWCASE (ThreeUI Style) */}
+      <section className={styles.pcbFlipSection} id="pcb-showcase">
+        <div className="container">
+          <PCB3DFlipShowcase />
         </div>
       </section>
 

@@ -395,6 +395,17 @@
 
 /*
   ==============================================================
+  3D Autonomous Robot Scroll Journey (ThreeUI Corridor)
+  ==============================================================
+*/
+.scrollJourneySection {
+  position: relative;
+  z-index: 2;
+  padding: 5rem 0 3.5rem;
+}
+
+/*
+  ==============================================================
   3D Interactive Robotics Lab Workbench
   ==============================================================
 */
@@ -402,6 +413,17 @@
   position: relative;
   z-index: 2;
   padding: 4.5rem 0;
+}
+
+/*
+  ==============================================================
+  3D PCB Perspective Flip Section (ThreeUI PCB Showcase)
+  ==============================================================
+*/
+.pcbFlipSection {
+  position: relative;
+  z-index: 2;
+  padding: 4.5rem 0 3.5rem;
 }
 
 .labNavPills {

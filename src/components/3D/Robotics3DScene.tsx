@@ -403,6 +403,7 @@ export const Robotics3DScene: React.FC = () => {
       renderer.dispose();
       if (container) container.innerHTML = '';
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resolvedTheme]);
 
   // Handle Model Switching
