@@ -41,8 +41,15 @@ export const ROSTerminal: React.FC = () => {
     rssi_dbm: -64,
   });
 
-  // LiDAR Radar Canvas Ref
+  // LiDAR Radar Canvas Ref & Interactive Nav2 Goal
   const radarCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [navGoal, setNavGoal] = useState<{ x: number; y: number; realX: number; realY: number; active: boolean }>({
+    x: 200,
+    y: 75,
+    realX: 4.82,
+    realY: 2.15,
+    active: true,
+  });
 
   // Initial seed logs
   useEffect(() => {
@@ -222,13 +229,80 @@ export const ROSTerminal: React.FC = () => {
       ctx.lineTo(cx, cy - 14);
       ctx.stroke();
 
+      // 6. Draw Interactive 2D Nav2 Goal & Planned Path
+      if (navGoal.active) {
+        // Path line from center robot to goal
+        ctx.strokeStyle = '#10b981';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(navGoal.x, navGoal.y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Pulsing goal ring
+        const pulse = Math.sin(Date.now() * 0.008) * 3;
+        ctx.strokeStyle = '#10b981';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(navGoal.x, navGoal.y, 8 + pulse, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.fillStyle = '#10b981';
+        ctx.beginPath();
+        ctx.arc(navGoal.x, navGoal.y, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#10b981';
+        ctx.font = '8px monospace';
+        ctx.fillText(`GOAL [${navGoal.realX}m, ${navGoal.realY}m]`, navGoal.x + 8, navGoal.y - 6);
+      }
+
       animId = requestAnimationFrame(renderRadar);
     };
 
     renderRadar();
 
     return () => cancelAnimationFrame(animId);
-  }, [activeTab]);
+  }, [activeTab, navGoal]);
+
+  // Click on Radar to dispatch Nav2 Goal Pose
+  const handleRadarClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = radarCanvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+    const scale = 10 / (canvas.width / 2); // 10m radius scale
+    const realX = Number(((clickX - cx) * scale).toFixed(2));
+    const realY = Number(((cy - clickY) * scale).toFixed(2));
+
+    setNavGoal({ x: clickX, y: clickY, realX, realY, active: true });
+
+    const now = new Date();
+    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+    setLogs((prev) => [
+      ...prev,
+      {
+        id: Date.now(),
+        node: 'nav2_bt_navigator',
+        level: 'INFO',
+        message: `NAV2 /goal_pose received -> [X: ${realX}m, Y: ${realY}m]`,
+        time: timeStr,
+      },
+      {
+        id: Date.now() + 1,
+        node: 'nav2_controller',
+        level: 'DATA',
+        message: `A* Global path computed to [${realX}, ${realY}]. DWB velocity: 0.60 m/s.`,
+        time: timeStr,
+      },
+    ]);
+  };
 
   // Execute CLI Command
   const handleCommandSubmit = (e: React.FormEvent) => {
@@ -570,7 +644,18 @@ cell_voltage: [4.10, 4.10, 4.10, 4.10] V`}
         <div className={styles.lidarSessionContainer}>
           {/* Live Polar Radar Sweep Canvas */}
           <div className={styles.radarHost}>
-            <canvas ref={radarCanvasRef} width={270} height={270} className={styles.radarCanvas} />
+            <canvas
+              ref={radarCanvasRef}
+              width={270}
+              height={270}
+              className={styles.radarCanvas}
+              onClick={handleRadarClick}
+              style={{ cursor: 'crosshair' }}
+              title="Click anywhere to dispatch Nav2 Goal Pose"
+            />
+            <div style={{ textAlign: 'center', marginTop: '6px', fontSize: '0.68rem', color: '#10b981', fontFamily: 'var(--font-mono)' }}>
+              🎯 Click anywhere on radar to dispatch /goal_pose
+            </div>
           </div>
 
           {/* Nav2 & LiDAR Metadata Dashboard */}
@@ -604,7 +689,9 @@ cell_voltage: [4.10, 4.10, 4.10, 4.10] V`}
               </div>
               <div className={styles.specTile}>
                 <span className={styles.specKey}>NAV2 GLOBAL GOAL</span>
-                <span className={styles.specVal}>[x: 4.82m, y: -2.15m]</span>
+                <span className={styles.specVal} style={{ color: '#10b981' }}>
+                  [x: {navGoal.realX}m, y: {navGoal.realY}m]
+                </span>
               </div>
               <div className={styles.specTile}>
                 <span className={styles.specKey}>COSTMAP INFLATION</span>

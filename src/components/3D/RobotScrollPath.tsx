@@ -241,6 +241,46 @@ export const RobotScrollPath: React.FC = () => {
     robotGroup.add(lidarCap);
     lidarTurretRef.current = lidarCap;
 
+    // Simulate the Ray of Light of LiDAR (360° fan of laser beams)
+    const rayCount = 48;
+    const rayVertices: number[] = [];
+    const rayColors: number[] = [];
+    const pRGB = new THREE.Color(primaryColor);
+    const emeraldRGB = new THREE.Color(0x10b981);
+
+    for (let i = 0; i < rayCount; i++) {
+      const angle = (i / rayCount) * Math.PI * 2;
+      rayVertices.push(0, 0.02, 0);
+      const range = 4.0 + Math.sin(angle * 4) * 1.2 + Math.cos(angle * 2) * 0.8;
+      rayVertices.push(Math.sin(angle) * range, 0.02, Math.cos(angle) * range);
+      rayColors.push(pRGB.r, pRGB.g, pRGB.b);
+      rayColors.push(emeraldRGB.r, emeraldRGB.g, emeraldRGB.b);
+    }
+    const rayGeo = new THREE.BufferGeometry();
+    rayGeo.setAttribute('position', new THREE.Float32BufferAttribute(rayVertices, 3));
+    rayGeo.setAttribute('color', new THREE.Float32BufferAttribute(rayColors, 3));
+    const rayMat = new THREE.LineBasicMaterial({
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.75,
+      blending: THREE.AdditiveBlending,
+    });
+    const lidarRays = new THREE.LineSegments(rayGeo, rayMat);
+    lidarCap.add(lidarRays);
+
+    // Volumetric Glowing Light Fan Sweeping with LiDAR
+    const fanGeo = new THREE.RingGeometry(0.3, 4.8, 36, 1);
+    const fanMat = new THREE.MeshBasicMaterial({
+      color: primaryColor,
+      transparent: true,
+      opacity: 0.12,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending,
+    });
+    const lidarFan = new THREE.Mesh(fanGeo, fanMat);
+    lidarFan.rotation.x = -Math.PI / 2;
+    lidarCap.add(lidarFan);
+
     // 4 Drive Wheels mounted on independent rotating axles
     const wheelGeo = new THREE.CylinderGeometry(0.35, 0.35, 0.25, 20);
     const wheelMat = new THREE.MeshStandardMaterial({
@@ -315,7 +355,46 @@ export const RobotScrollPath: React.FC = () => {
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
     };
-    window.addEventListener('resize', handleResize);
+    const raycaster = new THREE.Raycaster();
+    const mouseVec = new THREE.Vector2();
+    const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+    let downTime = 0;
+    let downX = 0;
+    let downY = 0;
+
+    const handleCanvasPointerDown = (e: MouseEvent) => {
+      downTime = Date.now();
+      downX = e.clientX;
+      downY = e.clientY;
+    };
+
+    const handleCanvasPointerUp = (e: MouseEvent) => {
+      if (Math.hypot(e.clientX - downX, e.clientY - downY) < 6 && Date.now() - downTime < 350) {
+        const rect = renderer.domElement.getBoundingClientRect();
+        mouseVec.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        mouseVec.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+        raycaster.setFromCamera(mouseVec, camera);
+        const hit = new THREE.Vector3();
+        if (raycaster.ray.intersectPlane(groundPlane, hit)) {
+          let closestProgress = 0;
+          let minDist = 9999;
+          for (let sp = 0; sp <= 1.0; sp += 0.02) {
+            const pt = splineRef.current.getPointAt(sp);
+            const d = Math.hypot(pt.x - hit.x, pt.z - hit.z);
+            if (d < minDist) {
+              minDist = d;
+              closestProgress = sp;
+            }
+          }
+          targetProgressRef.current = closestProgress;
+          setScrollProgress(closestProgress);
+        }
+      }
+    };
+
+    const domElement = renderer.domElement;
+    domElement.addEventListener('mousedown', handleCanvasPointerDown);
+    domElement.addEventListener('mouseup', handleCanvasPointerUp);
 
     // Animation Loop
     let lastP = initProgress;
@@ -370,6 +449,8 @@ export const RobotScrollPath: React.FC = () => {
     return () => {
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
       window.removeEventListener('resize', handleResize);
+      domElement.removeEventListener('mousedown', handleCanvasPointerDown);
+      domElement.removeEventListener('mouseup', handleCanvasPointerUp);
       renderer.dispose();
       if (host) host.innerHTML = '';
     };

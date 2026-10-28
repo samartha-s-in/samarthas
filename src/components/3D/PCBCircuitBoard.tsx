@@ -71,6 +71,7 @@ export const PCBCircuitBoard: React.FC = () => {
     window.addEventListener('resize', handleResize);
 
     const isDark = resolvedTheme === 'dark';
+    const primaryColor = isDark ? '#00e5ff' : '#0284c7';
     const traceBaseColor = isDark ? 'rgba(0, 229, 255, 0.22)' : 'rgba(2, 132, 199, 0.25)';
     const tracePulseColor = isDark ? '#00e5ff' : '#0284c7';
     const goldColor = isDark ? '#f59e0b' : '#d97706';
