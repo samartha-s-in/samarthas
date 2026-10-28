@@ -20,7 +20,7 @@ interface BlogListClientProps {
 
 export const BlogListClient: React.FC<BlogListClientProps> = ({ posts }) => {
   return (
-    <section className={styles.postsList}>
+    <section className={`${styles.postsList} reveal-stagger`}>
       {posts.map(({ slug, date, title, excerpt }) => (
         <Card3DTilt key={slug} intensity={8}>
           <Link href={`/blog/${slug}`} className={`glass-panel ${styles.postCard}`}>

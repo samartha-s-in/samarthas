@@ -79,7 +79,7 @@ export default function ContactPage() {
   return (
     <div className={`container ${styles.contactPage}`}>
       {/* Header */}
-      <div className={styles.headerBlock}>
+      <div className={`${styles.headerBlock} reveal-up`}>
         <span className={styles.eyebrow}>GET IN TOUCH</span>
         <h1 className={styles.title}>
           Let&apos;s Build Something <span className="gradient-text">Exceptional</span>
@@ -89,7 +89,7 @@ export default function ContactPage() {
         </p>
       </div>
 
-      <div className={styles.layout}>
+      <div className={`${styles.layout} reveal-stagger`}>
         {/* Left Information Panel */}
         <Card3DTilt intensity={8}>
           <div className={`glass-panel ${styles.infoPanel}`}>

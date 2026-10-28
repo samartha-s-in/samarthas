@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useTheme } from '@/components/Common/ThemeProvider';
-import { Play, RotateCcw, CheckCircle2 } from 'lucide-react';
+import { Play, RotateCcw, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
 import styles from './RobotScrollPath.module.css';
 
 interface Waypoint {
@@ -98,7 +98,6 @@ export const RobotScrollPath: React.FC = () => {
   const robotGroupRef = useRef<THREE.Group | null>(null);
   const wheelsRef = useRef<THREE.Mesh[]>([]);
   const lidarTurretRef = useRef<THREE.Mesh | null>(null);
-  const headlightBeamRef = useRef<THREE.SpotLight | null>(null);
   const animFrameRef = useRef<number | null>(null);
 
   // Smooth progress interpolation target
@@ -176,7 +175,7 @@ export const RobotScrollPath: React.FC = () => {
     scene.add(pathLine);
 
     // Add Waypoint Station Pillars on the 3D ground
-    waypoints.forEach((wp) => {
+    WAYPOINTS.forEach((wp) => {
       const pt = splineRef.current.getPointAt(wp.progress);
       // Outer ring
       const ringGeo = new THREE.RingGeometry(0.8, 0.9, 24);
@@ -220,89 +219,80 @@ export const RobotScrollPath: React.FC = () => {
       roughness: 0.3,
     });
     const upperMesh = new THREE.Mesh(upperGeo, upperMat);
-    upperMesh.position.set(0, 0.75, -0.1);
+    upperMesh.position.y = 0.8;
+    upperMesh.castShadow = true;
     robotGroup.add(upperMesh);
 
-    // 360° Rotating LiDAR Turret
+    // Spinning LiDAR Turret Dome
     const lidarBaseGeo = new THREE.CylinderGeometry(0.28, 0.28, 0.25, 20);
-    const lidarMat = new THREE.MeshStandardMaterial({ color: primaryColor, emissive: primaryColor, emissiveIntensity: 0.4 });
-    const lidarMesh = new THREE.Mesh(lidarBaseGeo, lidarMat);
-    lidarMesh.position.set(0, 1.05, 0.2);
-    robotGroup.add(lidarMesh);
-    lidarTurretRef.current = lidarMesh;
+    const lidarMat = new THREE.MeshStandardMaterial({ color: 0x111827, metalness: 0.9 });
+    const lidarBase = new THREE.Mesh(lidarBaseGeo, lidarMat);
+    lidarBase.position.y = 1.05;
+    robotGroup.add(lidarBase);
 
-    // Laser Ray Scanning Cone (Mesh)
-    const laserConeGeo = new THREE.ConeGeometry(2.5, 5, 16, 1, true);
-    const laserConeMat = new THREE.MeshBasicMaterial({
+    const lidarCapGeo = new THREE.CylinderGeometry(0.22, 0.22, 0.15, 16);
+    const lidarCapMat = new THREE.MeshStandardMaterial({
       color: primaryColor,
-      transparent: true,
-      opacity: 0.15,
-      side: THREE.DoubleSide,
-      wireframe: true,
+      emissive: primaryColor,
+      emissiveIntensity: 0.8,
     });
-    const laserCone = new THREE.Mesh(laserConeGeo, laserConeMat);
-    laserCone.rotation.x = Math.PI / 2;
-    laserCone.position.set(0, 0, 2.6);
-    lidarMesh.add(laserCone);
+    const lidarCap = new THREE.Mesh(lidarCapGeo, lidarCapMat);
+    lidarCap.position.y = 1.2;
+    robotGroup.add(lidarCap);
+    lidarTurretRef.current = lidarCap;
 
-    // Front Headlights
-    const headlightMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-    const headlightGeo = new THREE.CylinderGeometry(0.12, 0.12, 0.08, 16);
-    const leftLight = new THREE.Mesh(headlightGeo, headlightMat);
-    leftLight.rotation.x = Math.PI / 2;
-    leftLight.position.set(-0.55, 0.45, 1.12);
-    robotGroup.add(leftLight);
-
-    const rightLight = new THREE.Mesh(headlightGeo, headlightMat);
-    rightLight.rotation.x = Math.PI / 2;
-    rightLight.position.set(0.55, 0.45, 1.12);
-    robotGroup.add(rightLight);
-
-    // Spotlight beam
-    const spot = new THREE.SpotLight(0xffffff, 4, 15, Math.PI / 6, 0.3);
-    spot.position.set(0, 0.6, 1.1);
-    spot.target.position.set(0, 0, 8);
-    robotGroup.add(spot);
-    robotGroup.add(spot.target);
-    headlightBeamRef.current = spot;
-
-    // 4 Wheels
-    const wheelGeo = new THREE.CylinderGeometry(0.38, 0.38, 0.3, 16);
-    const wheelMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9, metalness: 0.2 });
-    wheelsRef.current = [];
-
+    // 4 Drive Wheels
+    const wheelGeo = new THREE.CylinderGeometry(0.35, 0.35, 0.25, 20);
+    const wheelMat = new THREE.MeshStandardMaterial({ color: 0x090d16, roughness: 0.9 });
     const wheelPositions = [
-      { x: -0.9, z: 0.7 },
-      { x: 0.9, z: 0.7 },
-      { x: -0.9, z: -0.7 },
-      { x: 0.9, z: -0.7 },
+      [-0.95, 0.35, 0.7],
+      [0.95, 0.35, 0.7],
+      [-0.95, 0.35, -0.7],
+      [0.95, 0.35, -0.7],
     ];
 
-    wheelPositions.forEach((wp) => {
-      const w = new THREE.Mesh(wheelGeo, wheelMat);
-      w.rotation.z = Math.PI / 2;
-      w.position.set(wp.x, 0.38, wp.z);
-      w.castShadow = true;
-      robotGroup.add(w);
-      wheelsRef.current.push(w);
+    wheelsRef.current = [];
+    wheelPositions.forEach(([x, y, z]) => {
+      const wheel = new THREE.Mesh(wheelGeo, wheelMat);
+      wheel.rotation.z = Math.PI / 2;
+      wheel.position.set(x, y, z);
+      wheel.castShadow = true;
+      robotGroup.add(wheel);
+      wheelsRef.current.push(wheel);
     });
 
+    // Dual Forward LED Headlights
+    const lightMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    const hlLeft = new THREE.Mesh(new THREE.SphereGeometry(0.08, 12, 12), lightMat);
+    hlLeft.position.set(-0.45, 0.5, 1.12);
+    const hlRight = new THREE.Mesh(new THREE.SphereGeometry(0.08, 12, 12), lightMat);
+    hlRight.position.set(0.45, 0.5, 1.12);
+    robotGroup.add(hlLeft);
+    robotGroup.add(hlRight);
+
+    // Front Headlight Beam (SpotLight)
+    const headBeam = new THREE.SpotLight(0xffffff, 4, 12, Math.PI / 6, 0.4);
+    headBeam.position.set(0, 0.6, 1.2);
+    const targetObj = new THREE.Object3D();
+    targetObj.position.set(0, 0, 8);
+    robotGroup.add(targetObj);
+    headBeam.target = targetObj;
+    robotGroup.add(headBeam);
+
+    // Initial positioning at progress 0
+    const startPt = splineRef.current.getPointAt(0);
+    robotGroup.position.copy(startPt);
     scene.add(robotGroup);
 
-    // Set initial position
-    const initPos = splineRef.current.getPointAt(0);
-    robotGroup.position.copy(initPos);
-
-    // Handle Resize
+    // Handle Window Resize
     const handleResize = () => {
-      if (!host || !camera || !renderer) return;
-      const newW = host.clientWidth;
-      const newH = host.clientHeight;
-      camera.aspect = newW / newH;
+      if (!host) return;
+      const w = host.clientWidth;
+      const h = host.clientHeight;
+      camera.aspect = w / h;
       camera.updateProjectionMatrix();
-      renderer.setSize(newW, newH);
+      renderer.setSize(w, h);
     };
-
     window.addEventListener('resize', handleResize);
 
     // Animation Loop
@@ -363,7 +353,7 @@ export const RobotScrollPath: React.FC = () => {
     };
   }, [resolvedTheme]);
 
-  // Listen to container scroll or manual scrubber
+  // Listen to container scroll
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -379,7 +369,7 @@ export const RobotScrollPath: React.FC = () => {
         targetProgressRef.current = progress;
         setScrollProgress(progress);
 
-        // Calculate active station index
+        // Calculate active station index based on closest progress
         let closestIdx = 0;
         let minDiff = 999;
         WAYPOINTS.forEach((wp, idx) => {
@@ -397,18 +387,35 @@ export const RobotScrollPath: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Auto-drive simulation timer
+  // Jump smoothly to a specific waypoint
+  const jumpToWaypoint = (idx: number) => {
+    if (idx < 0 || idx >= WAYPOINTS.length) return;
+    setActiveStation(idx);
+    targetProgressRef.current = WAYPOINTS[idx].progress;
+    setScrollProgress(WAYPOINTS[idx].progress);
+  };
+
+  // Auto-drive simulation timer that pauses at each station
   useEffect(() => {
     if (!isAutoDriving) return;
-    const interval = setInterval(() => {
-      targetProgressRef.current += 0.008;
-      if (targetProgressRef.current >= 1) {
-        targetProgressRef.current = 0;
-      }
-      setScrollProgress(targetProgressRef.current);
-    }, 40);
-    return () => clearInterval(interval);
-  }, [isAutoDriving]);
+    let stationTimer: NodeJS.Timeout | null = null;
+    let currentIdx = activeStation;
+
+    const driveNext = () => {
+      const nextIdx = (currentIdx + 1) % WAYPOINTS.length;
+      currentIdx = nextIdx;
+      jumpToWaypoint(nextIdx);
+
+      // Pause for 4 seconds at this station so user can review the card
+      stationTimer = setTimeout(driveNext, 4200);
+    };
+
+    stationTimer = setTimeout(driveNext, 3800);
+
+    return () => {
+      if (stationTimer) clearTimeout(stationTimer);
+    };
+  }, [isAutoDriving, activeStation]);
 
   const handleManualSeek = (val: number) => {
     targetProgressRef.current = val;
@@ -425,17 +432,34 @@ export const RobotScrollPath: React.FC = () => {
     setActiveStation(closestIdx);
   };
 
+  const currentWp = WAYPOINTS[activeStation];
+  const isRightSide = currentWp.position === 'right';
+
   return (
     <div className={styles.scrollSectionWrapper} ref={containerRef}>
       {/* Sticky 3D WebGL Viewport */}
       <div className={styles.stickyCanvasContainer}>
         <div ref={canvasHostRef} className={styles.webglCanvas} />
 
-        {/* Top HUD Telemetry Ribbon */}
+        {/* Top HUD Telemetry Ribbon & Waypoint Jump Tabs */}
         <div className={styles.hudHeader}>
           <div className={styles.statusBox}>
             <span className="pulse-dot" />
             <span className={styles.hudLabel}>AUTONOMOUS MOBILE ROBOT (AMR) // PATH TRACKING</span>
+          </div>
+
+          {/* Quick-Jump Station Selector Pills */}
+          <div className={styles.stationPillsRow}>
+            {WAYPOINTS.map((wp, idx) => (
+              <button
+                key={wp.id}
+                onClick={() => jumpToWaypoint(idx)}
+                className={`${styles.stationPillBtn} ${activeStation === idx ? styles.stationPillBtnActive : ''}`}
+              >
+                <span>{`0${idx + 1}`}</span>
+                <span>{wp.badge}</span>
+              </button>
+            ))}
           </div>
 
           <div className={styles.controlsBar}>
@@ -447,7 +471,7 @@ export const RobotScrollPath: React.FC = () => {
               <span>{isAutoDriving ? 'PAUSE DRIVE' : 'AUTO-DRIVE'}</span>
             </button>
             <button
-              onClick={() => handleManualSeek(0)}
+              onClick={() => jumpToWaypoint(0)}
               className={styles.hudBtn}
               title="Reset to Starting Station"
             >
@@ -456,14 +480,88 @@ export const RobotScrollPath: React.FC = () => {
           </div>
         </div>
 
-        {/* Interactive Scrubber Slider */}
+        {/* Holographic Dynamic Waypoint Card (Appears on Left or Right as Robot Stops) */}
+        <div
+          className={`${styles.hudCardContainer} ${isRightSide ? styles.dockRight : styles.dockLeft}`}
+        >
+          <div
+            key={currentWp.id}
+            className={`glass-panel ${styles.hologramCard} ${isRightSide ? styles.slideInRight : styles.slideInLeft}`}
+          >
+            {/* Holographic Laser Scanline */}
+            <div className={styles.scanline} />
+
+            {/* Tech Bracket Accents */}
+            <span className={styles.cornerTL} />
+            <span className={styles.cornerTR} />
+            <span className={styles.cornerBL} />
+            <span className={styles.cornerBR} />
+
+            <div className={styles.cardStationHeader}>
+              <span className={styles.stationName}>{currentWp.name}</span>
+              <span className={styles.stationPill}>{currentWp.badge}</span>
+            </div>
+
+            {/* Active Sensor Waveform */}
+            <div className={styles.telemetryWaveform} title="Simulated LiDAR Telemetry Signal">
+              <span className={styles.waveBar} />
+              <span className={styles.waveBar} />
+              <span className={styles.waveBar} />
+              <span className={styles.waveBar} />
+              <span className={styles.waveBar} />
+            </div>
+
+            <h3 className={styles.cardTitle}>{currentWp.title}</h3>
+            <p className={styles.cardTagline}>{currentWp.tagline}</p>
+
+            <ul className={styles.specsList}>
+              {currentWp.specs.map((spec, sIdx) => (
+                <li key={sIdx}>
+                  <CheckCircle2 size={14} className={styles.checkIcon} />
+                  <span>{spec}</span>
+                </li>
+              ))}
+            </ul>
+
+            <div className={styles.techPillRow}>
+              {currentWp.tech.map((t) => (
+                <span key={t} className="tech-chip">
+                  {t}
+                </span>
+              ))}
+            </div>
+
+            {/* Prev / Next Station Navigation Footer */}
+            <div className={styles.cardNavFooter}>
+              <button
+                onClick={() => jumpToWaypoint(activeStation - 1)}
+                disabled={activeStation === 0}
+                className={styles.cardNavBtn}
+              >
+                <ChevronLeft size={14} />
+                <span>Prev Station</span>
+              </button>
+
+              <button
+                onClick={() => jumpToWaypoint(activeStation + 1)}
+                disabled={activeStation === WAYPOINTS.length - 1}
+                className={styles.cardNavBtn}
+              >
+                <span>Next Station</span>
+                <ChevronRight size={14} />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Interactive Scrubber Slider */}
         <div className={styles.scrubberBar}>
           <div className={styles.scrubberInfo}>
             <span className={styles.scrubberText}>
-              MISSION PROGRESS: {Math.round(scrollProgress * 100)}%
+              MISSION PROGRESS: {Math.round(scrollProgress * 100)}% // {currentWp.name}
             </span>
             <span className={styles.stationBadge}>
-              {WAYPOINTS[activeStation].badge}
+              {currentWp.badge}
             </span>
           </div>
           <input
@@ -476,56 +574,6 @@ export const RobotScrollPath: React.FC = () => {
             className={styles.seekSlider}
           />
         </div>
-      </div>
-
-      {/* Floating Story Waypoint Cards that appear on Left / Right based on robot station */}
-      <div className={styles.storyContentLayer}>
-        {WAYPOINTS.map((wp, idx) => {
-          const isCurrent = activeStation === idx;
-          const isLeft = wp.position === 'left';
-
-          return (
-            <div
-              key={wp.id}
-              className={`${styles.storyWaypointRow} ${isLeft ? styles.rowLeft : styles.rowRight}`}
-            >
-              <div
-                className={`glass-panel ${styles.waypointCard} ${isCurrent ? styles.activeCard : ''}`}
-              >
-                {/* Tech Bracket Accents */}
-                <span className={styles.cornerTL} />
-                <span className={styles.cornerTR} />
-                <span className={styles.cornerBL} />
-                <span className={styles.cornerBR} />
-
-                <div className={styles.cardStationHeader}>
-                  <span className={styles.stationName}>{wp.name}</span>
-                  <span className={styles.stationPill}>{wp.badge}</span>
-                </div>
-
-                <h3 className={styles.cardTitle}>{wp.title}</h3>
-                <p className={styles.cardTagline}>{wp.tagline}</p>
-
-                <ul className={styles.specsList}>
-                  {wp.specs.map((spec, sIdx) => (
-                    <li key={sIdx}>
-                      <CheckCircle2 size={14} className={styles.checkIcon} />
-                      <span>{spec}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                <div className={styles.techPillRow}>
-                  {wp.tech.map((t) => (
-                    <span key={t} className="tech-chip">
-                      {t}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          );
-        })}
       </div>
     </div>
   );

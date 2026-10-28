@@ -1,25 +1,26 @@
 .scrollSectionWrapper {
   position: relative;
-  min-height: 280vh;
-  margin: 4rem 0;
+  min-height: 170vh;
+  margin: 3.5rem 0;
 }
 
 /*
   ==============================================================
-  Sticky 3D WebGL Viewport
+  Sticky 3D WebGL Viewport & Stage
   ==============================================================
 */
 .stickyCanvasContainer {
   position: sticky;
-  top: 5rem;
+  top: 4.8rem;
   width: 100%;
   height: 82vh;
-  min-height: 540px;
+  min-height: 580px;
+  max-height: 820px;
   border-radius: 24px;
   overflow: hidden;
   background: var(--bg-card);
   border: 1px solid var(--border-medium);
-  box-shadow: var(--shadow-xl), 0 0 45px var(--accent-glow-subtle);
+  box-shadow: var(--shadow-xl), 0 0 50px var(--accent-glow-subtle);
   z-index: 10;
 }
 
@@ -34,7 +35,7 @@
 
 /*
   ==============================================================
-  HUD Header Bar Overlay
+  HUD Top Control Bar
   ==============================================================
 */
 .hudHeader {
@@ -42,16 +43,18 @@
   top: 16px;
   left: 20px;
   right: 20px;
-  z-index: 15;
+  z-index: 25;
   display: flex;
   justify-content: space-between;
   align-items: center;
   background: var(--bg-glass-card);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border-medium);
   border-radius: 14px;
   padding: 10px 18px;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .statusBox {
@@ -67,6 +70,41 @@
   letter-spacing: 0.08em;
   color: var(--accent-primary);
   text-transform: uppercase;
+}
+
+.stationPillsRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.stationPillBtn {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 0.72rem;
+  font-family: var(--font-mono), monospace;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.stationPillBtn:hover {
+  border-color: var(--accent-primary);
+  color: var(--text-primary);
+}
+
+.stationPillBtnActive {
+  background: var(--accent-gradient) !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+  box-shadow: 0 2px 10px var(--accent-glow-strong);
 }
 
 .controlsBar {
@@ -105,7 +143,7 @@
 
 /*
   ==============================================================
-  Scrubber Bar
+  Bottom Mission Scrubber Bar
   ==============================================================
 */
 .scrubberBar {
@@ -113,13 +151,13 @@
   bottom: 16px;
   left: 20px;
   right: 20px;
-  z-index: 15;
+  z-index: 25;
   background: var(--bg-glass-card);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border-medium);
   border-radius: 14px;
-  padding: 12px 20px;
+  padding: 10px 18px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -159,101 +197,121 @@
 
 /*
   ==============================================================
-  Story Content Layer (Alternating Left / Right HUD Cards)
+  Holographic Dynamic Waypoint Card (Animated on Left / Right)
   ==============================================================
 */
-.storyContentLayer {
-  position: relative;
+.hudCardContainer {
+  position: absolute;
+  top: 76px;
+  bottom: 76px;
   z-index: 20;
   display: flex;
-  flex-direction: column;
-  gap: 48vh;
-  margin-top: -65vh;
-  padding-bottom: 25vh;
+  align-items: center;
   pointer-events: none;
+  padding: 0 24px;
 }
 
-.storyWaypointRow {
-  display: flex;
-  width: 100%;
-  padding: 0 40px;
-}
-
-.rowLeft {
-  justify-content: flex-start;
-}
-
-.rowRight {
+.hudCardContainer.dockRight {
+  right: 0;
   justify-content: flex-end;
 }
 
-.waypointCard {
+.hudCardContainer.dockLeft {
+  left: 0;
+  justify-content: flex-start;
+}
+
+.hologramCard {
   position: relative;
   width: 440px;
   max-width: 90vw;
-  padding: 28px;
+  max-height: calc(82vh - 170px);
+  overflow-y: auto;
+  padding: 26px;
   border-radius: 20px;
   background: var(--bg-glass-card);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border-medium);
-  box-shadow: var(--shadow-xl), 0 0 35px var(--accent-glow-subtle);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--accent-primary);
+  box-shadow: var(--shadow-xl), 0 0 45px var(--accent-glow-strong);
   pointer-events: auto;
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  opacity: 0.4;
-  transform: translateY(20px) scale(0.96);
+  overflow-x: hidden;
 }
 
-.activeCard {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-  border-color: var(--accent-primary) !important;
-  box-shadow: var(--shadow-xl), 0 0 50px var(--accent-glow-strong);
+/* Slide in animations based on dock side */
+.slideInRight {
+  animation: cardSlideInRight 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.slideInLeft {
+  animation: cardSlideInLeft 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes cardSlideInRight {
+  0% {
+    opacity: 0;
+    transform: translateX(80px) scale(0.92);
+    filter: blur(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    filter: blur(0px);
+  }
+}
+
+@keyframes cardSlideInLeft {
+  0% {
+    opacity: 0;
+    transform: translateX(-80px) scale(0.92);
+    filter: blur(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    filter: blur(0px);
+  }
+}
+
+/* Laser Scanline Beam */
+.scanline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent-primary), transparent);
+  box-shadow: 0 0 12px var(--accent-primary);
+  pointer-events: none;
+  animation: scanlineSweep 4s ease-in-out infinite;
+}
+
+@keyframes scanlineSweep {
+  0% { top: 0%; opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
 }
 
 /* Sci-Fi Corner Brackets */
 .cornerTL, .cornerTR, .cornerBL, .cornerBR {
   position: absolute;
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-color: var(--accent-primary);
   pointer-events: none;
 }
 
-.cornerTL {
-  top: 6px;
-  left: 6px;
-  border-top: 2px solid;
-  border-left: 2px solid;
-}
-
-.cornerTR {
-  top: 6px;
-  right: 6px;
-  border-top: 2px solid;
-  border-right: 2px solid;
-}
-
-.cornerBL {
-  bottom: 6px;
-  left: 6px;
-  border-bottom: 2px solid;
-  border-left: 2px solid;
-}
-
-.cornerBR {
-  bottom: 6px;
-  right: 6px;
-  border-bottom: 2px solid;
-  border-right: 2px solid;
-}
+.cornerTL { top: 8px; left: 8px; border-top: 2px solid; border-left: 2px solid; }
+.cornerTR { top: 8px; right: 8px; border-top: 2px solid; border-right: 2px solid; }
+.cornerBL { bottom: 8px; left: 8px; border-bottom: 2px solid; border-left: 2px solid; }
+.cornerBR { bottom: 8px; right: 8px; border-bottom: 2px solid; border-right: 2px solid; }
 
 .cardStationHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .stationName {
@@ -276,66 +334,151 @@
   border-radius: 6px;
 }
 
+/* Active Audio/Sensor Telemetry Bars */
+.telemetryWaveform {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 14px;
+  margin-bottom: 10px;
+}
+
+.waveBar {
+  width: 3px;
+  height: 100%;
+  background: var(--accent-primary);
+  border-radius: 1px;
+  animation: wavePulse 1.2s ease-in-out infinite alternate;
+}
+
+.waveBar:nth-child(1) { animation-delay: 0.1s; }
+.waveBar:nth-child(2) { animation-delay: 0.3s; }
+.waveBar:nth-child(3) { animation-delay: 0.2s; }
+.waveBar:nth-child(4) { animation-delay: 0.4s; }
+.waveBar:nth-child(5) { animation-delay: 0.25s; }
+
+@keyframes wavePulse {
+  0% { transform: scaleY(0.25); opacity: 0.5; }
+  100% { transform: scaleY(1); opacity: 1; }
+}
+
 .cardTitle {
   font-size: 1.25rem;
   font-weight: 800;
   color: var(--text-primary);
   line-height: 1.3;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .cardTagline {
   font-size: 0.88rem;
   color: var(--text-secondary);
-  line-height: 1.6;
-  margin-bottom: 16px;
+  line-height: 1.55;
+  margin-bottom: 14px;
 }
 
 .specsList {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 18px;
+  gap: 6px;
+  margin-bottom: 16px;
 }
 
 .specsList li {
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  font-size: 0.84rem;
+  font-size: 0.82rem;
   color: var(--text-muted);
-  line-height: 1.5;
+  line-height: 1.45;
 }
 
 .checkIcon {
   color: var(--accent-emerald);
   flex-shrink: 0;
-  margin-top: 3px;
+  margin-top: 2px;
 }
 
 .techPillRow {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  margin-bottom: 16px;
 }
 
+/* Card Action Footer with Prev / Next Waypoint buttons */
+.cardNavFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 12px;
+  gap: 10px;
+}
+
+.cardNavBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.74rem;
+  font-family: var(--font-mono), monospace;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cardNavBtn:hover:not(:disabled) {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+.cardNavBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/*
+  ==============================================================
+  Responsive Adjustments
+  ==============================================================
+*/
 @media (max-width: 900px) {
-  .storyContentLayer {
-    padding: 0 16px;
+  .hudHeader {
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    padding: 8px 12px;
   }
 
-  .storyWaypointRow {
-    padding: 0;
+  .stationPillsRow {
+    display: none;
+  }
+
+  .scrubberBar {
+    bottom: 10px;
+    left: 10px;
+    right: 10px;
+    padding: 8px 14px;
+  }
+
+  .hudCardContainer {
+    top: 60px;
+    bottom: 60px;
+    left: 10px !important;
+    right: 10px !important;
     justify-content: center !important;
+    padding: 0;
   }
 
-  .waypointCard {
+  .hologramCard {
     width: 100%;
-    padding: 20px;
-  }
-
-  .stickyCanvasContainer {
-    height: 65vh;
+    max-height: calc(82vh - 140px);
+    padding: 18px;
   }
 }

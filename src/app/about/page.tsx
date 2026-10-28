@@ -97,7 +97,7 @@ export default function AboutPage() {
       </Card3DTilt>
 
       {/* Work Experience & Research Timeline */}
-      <section id="experience" className={styles.sectionBlock}>
+      <section id="experience" className={`${styles.sectionBlock} reveal-up`}>
         <div className={styles.sectionHeader}>
           <div className={styles.iconCircle}>
             <Briefcase size={22} />
@@ -110,7 +110,7 @@ export default function AboutPage() {
           </div>
         </div>
 
-        <div className={styles.timelineContainer}>
+        <div className={`${styles.timelineContainer} reveal-stagger`}>
           {workExperience.map((exp, idx) => (
             <Card3DTilt key={idx} intensity={8}>
               <div className={`glass-panel ${styles.timelineItem}`}>
@@ -159,7 +159,7 @@ export default function AboutPage() {
       </section>
 
       {/* Education & Academic Foundation */}
-      <section className={styles.sectionBlock}>
+      <section className={`${styles.sectionBlock} reveal-up`}>
         <div className={styles.sectionHeader}>
           <div className={styles.iconCircle}>
             <GraduationCap size={22} />
@@ -172,7 +172,7 @@ export default function AboutPage() {
           </div>
         </div>
 
-        <div className={styles.timelineContainer}>
+        <div className={`${styles.timelineContainer} reveal-stagger`}>
           {educationList.map((edu, idx) => (
             <Card3DTilt key={idx} intensity={8}>
               <div className={`glass-panel ${styles.timelineItem}`}>
@@ -206,7 +206,7 @@ export default function AboutPage() {
       </section>
 
       {/* Languages & Interests Grid */}
-      <section className={styles.dualBlock}>
+      <section className={`${styles.dualBlock} reveal-up`}>
         {/* Languages */}
         <div className={`glass-panel ${styles.sideCard}`}>
           <div className={styles.sideCardHeader}>

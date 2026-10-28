@@ -12,7 +12,7 @@ export default function BlogPage() {
 
   return (
     <div className={`container ${styles.blogPage}`}>
-      <div className={styles.header}>
+      <div className={`${styles.header} reveal-up`}>
         <span className={styles.eyebrow}>RESEARCH &amp; THOUGHT LEADERSHIP</span>
         <h1 className={styles.pageTitle}>
           Articles &amp; <span className="gradient-text">Engineering Insights</span>

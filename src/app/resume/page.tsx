@@ -43,7 +43,7 @@ export default function ResumePage() {
   return (
     <div className={`container ${styles.resumePage}`}>
       {/* Header and Controls */}
-      <div className={`glass-panel ${styles.headerCard}`}>
+      <div className={`glass-panel ${styles.headerCard} reveal-up`}>
         <div className={styles.headerInfo}>
           <span className={styles.eyebrow}>CURRICULUM VITAE</span>
           <h1 className={styles.title}>{personalInfo.name}</h1>

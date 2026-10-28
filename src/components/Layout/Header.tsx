@@ -31,7 +31,6 @@ const Header = () => {
 
   const navLinks = [
     { href: '/', label: 'Overview' },
-    { href: '/#lab', label: '3D Lab & VSS' },
     { href: '/about', label: 'About & Journey' },
     { href: '/projects', label: 'Projects' },
     { href: '/#publication', label: 'IEEE Research' },

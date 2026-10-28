@@ -263,8 +263,8 @@ export default function HomePage() {
       <InfiniteTicker />
 
       {/* Key Engineering Metrics Strip */}
-      <section className={styles.metricsSection}>
-        <div className={`container ${styles.metricsGrid}`}>
+      <section className={`${styles.metricsSection} reveal-up`}>
+        <div className={`container ${styles.metricsGrid} reveal-stagger`}>
           {personalInfo.stats.map((stat, idx) => (
             <Card3DTilt key={idx} intensity={10}>
               <div className={`glass-panel ${styles.metricCard}`}>
@@ -278,9 +278,9 @@ export default function HomePage() {
       </section>
 
       {/* 3D AUTONOMOUS ROBOT SCROLL MISSION (ThreeUI Style) */}
-      <section className={styles.scrollJourneySection} id="mission-track">
+      <section className={`${styles.scrollJourneySection} reveal-up`} id="mission-track">
         <div className="container">
-          <div className={styles.sectionHeaderCenter}>
+          <div className={`${styles.sectionHeaderCenter} reveal-up`}>
             <span className={styles.sectionEyebrow}>THREEUI INTERACTIVE 3D EXPERIENCE</span>
             <h2 className={styles.sectionHeading}>
               Autonomous Navigation <span className="gradient-text">Mission Corridor</span>
@@ -357,16 +357,16 @@ export default function HomePage() {
       </section>
 
       {/* 3D PCB PERSPECTIVE FLIP SHOWCASE (ThreeUI Style) */}
-      <section className={styles.pcbFlipSection} id="pcb-showcase">
+      <section className={`${styles.pcbFlipSection} reveal-up`} id="pcb-showcase">
         <div className="container">
           <PCB3DFlipShowcase />
         </div>
       </section>
 
       {/* Engineering Pillars (What I Build) with 3D Spatial Tilt */}
-      <section className={`section-padding ${styles.pillarsSection}`}>
+      <section className={`section-padding ${styles.pillarsSection} reveal-up`}>
         <div className="container">
-          <div className={styles.sectionHeaderCenter}>
+          <div className={`${styles.sectionHeaderCenter} reveal-up`}>
             <span className={styles.sectionEyebrow}>CORE COMPETENCIES</span>
             <h2 className={styles.sectionHeading}>
               Engineering the Future of <span className="gradient-text">Intelligent Machines</span>
@@ -376,7 +376,7 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className={styles.pillarsGrid}>
+          <div className={`${styles.pillarsGrid} reveal-stagger`}>
             <Card3DTilt intensity={12}>
               <div className={`glass-panel ${styles.pillarCard}`}>
                 <BorderBeam size={120} duration={8} />
@@ -453,7 +453,7 @@ export default function HomePage() {
       </section>
 
       {/* Featured Projects Showcase with 3D Spatial Tilt */}
-      <section id="projects" className={`section-padding ${styles.projectsSection}`}>
+      <section id="projects" className={`section-padding ${styles.projectsSection} reveal-up`}>
         <div className="container">
           <div className={styles.sectionHeaderFlex}>
             <div>
@@ -486,7 +486,7 @@ export default function HomePage() {
           </div>
 
           {/* Projects Grid */}
-          <div className={styles.projectsGrid}>
+          <div className={`${styles.projectsGrid} reveal-stagger`}>
             {filteredProjects.map((project) => (
               <Card3DTilt key={project.slug} intensity={10}>
                 <div className={`glass-panel ${styles.projectCard}`}>

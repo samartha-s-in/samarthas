@@ -4,6 +4,7 @@ import { ThemeProvider } from '@/components/Common/ThemeProvider';
 import Header from '@/components/Layout/Header';
 import Footer from '@/components/Layout/Footer';
 import RobotCompanion from '@/components/Spatial/RobotCompanion';
+import PageAnimation from '@/components/Common/PageAnimation';
 import './globals.css';
 
 const inter = Inter({
@@ -83,7 +84,9 @@ export default function RootLayout({
         <ThemeProvider>
           <div className="portfolio-app">
             <Header />
-            <main id="main-content">{children}</main>
+            <main id="main-content">
+              <PageAnimation>{children}</PageAnimation>
+            </main>
             <Footer />
             <RobotCompanion />
           </div>

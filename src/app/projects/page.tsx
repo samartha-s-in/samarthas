@@ -48,7 +48,7 @@ export default function ProjectsPage() {
   return (
     <div className={`container ${styles.projectsPage}`}>
       {/* Page Header */}
-      <div className={styles.pageHeader}>
+      <div className={`${styles.pageHeader} reveal-up`}>
         <span className={styles.eyebrow}>INNOVATION SHOWCASE</span>
         <h1 className={styles.title}>
           Robotics &amp; <span className="gradient-text">Autonomous Systems</span>
@@ -59,7 +59,7 @@ export default function ProjectsPage() {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className={styles.controlBar}>
+      <div className={`${styles.controlBar} reveal-up`}>
         <div className={styles.categoryFilters}>
           {categories.map((category) => (
             <button
@@ -85,7 +85,7 @@ export default function ProjectsPage() {
       </div>
 
       {/* Projects Grid */}
-      <div className={styles.grid}>
+      <div className={`${styles.grid} reveal-stagger`}>
         {filteredProjects.length > 0 ? (
           filteredProjects.map((project) => (
             <Card3DTilt key={project.slug} intensity={10}>
