@@ -59,7 +59,7 @@ export const Robotics3DScene: React.FC = () => {
   const nav2PathLineRef = useRef<THREE.Line | null>(null);
 
   const jointsRef = useRef<{ [key: string]: THREE.Object3D }>({});
-  const rotorsRef = useRef<THREE.Mesh[]>([]);
+  const rotorsRef = useRef<THREE.Group[]>([]);
 
   // Mouse interaction state
   const isDraggingRef = useRef(false);

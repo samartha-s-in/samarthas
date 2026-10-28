@@ -428,6 +428,7 @@ code, pre, .mono {
 .gradient-text {
   background: var(--accent-gradient-text);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   display: inline-block;
 }
