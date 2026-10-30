@@ -1,0 +1,45 @@
+---
+title: 'Aerospace Structural Design in CATIA V5: FEA Stress Analysis & Lightweighting'
+date: '2026-10-30'
+author: 'Samartha S'
+category: 'Hardware'
+tags: ["CATIA V5","FEA","Aerospace","Structural Analysis","CAD","Generative Design"]
+excerpt: 'Parametric modeling, aerodynamic fairing surfaces, and Von Mises stress simulations for space launch payload shrouds and robotic linkages.'
+---
+
+## Precision Engineering with CATIA V5
+
+In space transportation systems and high-g robotic manipulators, structural integrity must be balanced against stringent mass budgets.
+
+During design iterations of launch vehicle payload shrouds (such as the **ISRO GSLV Mk II fairing**) and robotic linkages (such as the **RoboGleam dual articulated cleaning armature**), parametric CAD design in **CATIA V5 Part Design and Generative Shape Design** is combined with rigorous **Finite Element Analysis (FEA)**.
+
+```
+[ Parametric Spline Curve ] ──> [ Solid Surface Revolution ] ──> [ Tetrahedral Mesh ] ──> [ Von Mises FEA Solver ]
+```
+
+### Mathematical Basis: Von Mises Yield Criterion
+
+To ensure components do not undergo plastic deformation under maximum dynamic pressure, the equivalent Von Mises stress must remain strictly below the yield strength divided by the factor of safety (FOS):
+
+```math
+sigma_v = sqrt(0.5 * [(s1 - s2)^2 + (s2 - s3)^2 + (s3 - s1)^2]) <= sigma_yield / FOS
+```
+
+### Structural Optimization Workflow
+
+1. **Class-A Aerodynamic Surfacing:** Developing continuous tangent (G1) and curvature (G2) bi-conic ogive fairing curves in Generative Shape Design.
+2. **Isogrid / Orthogrid Lightening:** Pocket milling structural ribs into the interior skin of aerospace aluminum-lithium (Al-Li 2195) alloys, reducing weight by 42% while preserving buckling resistance.
+3. **FEA Meshing & Constraints:** Applying parabolic tetrahedral solid elements (TE10) with localized mesh refinement at fillet radiuses and hinge pin mounts.
+
+### Material Comparison Benchmark
+
+| Material Candidate | Density (g/cm³) | Yield Strength (MPa) | Specific Strength (kN·m/kg) |
+| :--- | :--- | :--- | :--- |
+| **Structural Steel (A36)** | 7.85 | 250 | 31.8 |
+| **Aluminium 6061-T6** | 2.70 | 276 | 102.2 |
+| **Titanium Ti-6Al-4V** | 4.43 | 880 | 198.6 |
+| **Toray 3K Carbon / Epoxy** | **1.55** | **1,250** | **806.4** |
+
+### Conclusion
+
+Integrating parametric CAD modeling with iterative structural FEA enables engineers to eliminate dead mass, optimize load paths, and ensure mission-critical hardware withstands launch acoustic loads and harsh operating environments.
