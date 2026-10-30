@@ -1,6 +1,5 @@
-"use client";
-
 import React from 'react';
+import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -24,6 +23,21 @@ import {
   Award,
 } from 'lucide-react';
 import styles from './About.module.css';
+
+export const metadata: Metadata = {
+  title: 'About & Career Journey',
+  description:
+    'Career journey, academic pedigree, research affiliations at NMIT CRR, and hands-on robotics engineering experience of Samartha S.',
+  alternates: {
+    canonical: 'https://samarthas.vercel.app/about',
+  },
+  openGraph: {
+    title: 'About Samartha S | Robotics & AI Engineer',
+    description:
+      'Career journey, academic pedigree, research affiliations at NMIT CRR, and hands-on robotics engineering experience of Samartha S.',
+    url: 'https://samarthas.vercel.app/about',
+  },
+};
 
 export default function AboutPage() {
   return (

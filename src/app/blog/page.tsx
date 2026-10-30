@@ -1,10 +1,21 @@
+import type { Metadata } from 'next';
 import { getSortedPostsData } from '@/lib/posts';
 import BlogListClient from '@/components/Blog/BlogListClient';
 import styles from './Blog.module.css';
 
-export const metadata = {
-  title: 'Articles & Insights | Samartha S - Robotics & AI Engineer',
-  description: 'Technical articles and deep-dives on ROS 2, autonomous mobile robotics, computer vision, and embedded systems by Samartha S.',
+export const metadata: Metadata = {
+  title: 'Articles & Insights',
+  description:
+    'Technical articles, research logs, and deep-dives on ROS 2, autonomous mobile robotics, computer vision, and embedded systems by Samartha S.',
+  alternates: {
+    canonical: 'https://samarthas.vercel.app/blog',
+  },
+  openGraph: {
+    title: 'Articles & Insights | Samartha S',
+    description:
+      'Technical articles and deep-dives on ROS 2, autonomous mobile robotics, computer vision, and embedded systems by Samartha S.',
+    url: 'https://samarthas.vercel.app/blog',
+  },
 };
 
 export default function BlogPage() {

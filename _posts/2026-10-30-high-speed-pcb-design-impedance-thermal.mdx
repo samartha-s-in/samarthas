@@ -1,0 +1,49 @@
+---
+title: 'High-Speed PCB Design: 50-Ohm Controlled Impedance & Thermal Relief for Robotics Carrier Boards'
+date: '2026-10-30'
+author: 'Samartha S'
+category: 'Hardware'
+tags: ["PCB Design","Altium","KiCad","High-Speed","Controlled Impedance","Hardware"]
+excerpt: 'Routing high-speed differential pairs, MIPI CSI-2 camera buses, and multi-rail power distribution for autonomous drone companion carriers.'
+---
+
+## The Critical Role of Hardware Reliability in Autonomy
+
+Software autonomy algorithms are only as dependable as the underlying printed circuit board. In autonomous aerial and ground vehicles, electrical noise from high-current BLDC motors can easily corrupt high-frequency digital telemetry lines.
+
+### Controlled Impedance Microstrip Routing
+
+For high-speed interfaces such as **USB 3.0 (90-Ohm differential)**, **Ethernet MDI (100-Ohm differential)**, and **MIPI CSI-2 (100-Ohm differential)**, trace geometry must be calculated based on the FR-4 dielectric constant:
+
+```math
+Z_0 = (87 / sqrt(eps_r + 1.41)) * ln(5.98 * h / (0.8 * w + t))
+```
+
+Where `h` is dielectric height, `w` is trace width, and `t` is copper thickness (1 oz = 35 um).
+
+```
+          w      s      w
+       +-----+       +-----+       <-- Copper Traces (F.Cu)
+       |     |       |     |
+================================== <-- Solder Mask
+----------------------------------
+                                   <-- Dielectric Prepreg (h = 0.15mm)
+----------------------------------
+================================== <-- Continuous Ground Plane (In1.Cu)
+```
+
+### 4-Layer Stackup Architecture
+
+1. **Top Layer (F.Cu):** High-speed differential pairs, crystal oscillators, and SMT component pads.
+2. **Inner Layer 1 (In1.Cu):** Solid, unbroken Ground Reference Plane for mirror currents.
+3. **Inner Layer 2 (In2.Cu):** Segmented Power Rails (5.0V, 3.3V, 1.8V, 12V LiPo).
+4. **Bottom Layer (B.Cu):** Low-speed telemetry routing (UART, I2C, CAN-Bus) and thermal copper ground pour.
+
+### Thermal Dissipation Strategies for Jetson & Pixhawk Carriers
+
+- **Thermal Vias Array:** 0.3mm vias arranged in a 1.0mm grid beneath high-power voltage regulators (buck converters) to conduct heat directly into the bottom ground plane.
+- **Galvanic Isolation:** Optocouplers and isolated DC-DC converters preventing motor inductive voltage spikes from back-feeding into the 3.3V microcontroller logic rail.
+
+### Summary
+
+Adhering to strict high-speed layout rules, maintaining continuous ground return paths, and engineering active thermal vias ensures autonomous robotics hardware operates reliably under extreme vibration and thermal conditions.

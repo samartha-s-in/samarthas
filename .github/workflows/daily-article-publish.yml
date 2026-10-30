@@ -2,8 +2,8 @@ name: Automated Daily Technical Article Publishing
 
 on:
   schedule:
-    # Runs daily at 03:00 UTC (08:30 AM IST)
-    - cron: '0 3 * * *'
+    # Runs daily at 02:30 UTC (08:00 AM IST)
+    - cron: '30 2 * * *'
   workflow_dispatch:
     # Allows manual trigger at any time from GitHub Actions UI
 
@@ -38,7 +38,7 @@ jobs:
           git status
           if [ -n "$(git status --porcelain _posts/)" ]; then
             git config user.name "samartha-s-in"
-            git config user.email "samarthas729@gmail.com"
+            git config user.email "samarthas312@gmail.com"
             git add _posts/
             TODAY=$(date +'%Y-%m-%d')
             git commit -m "feat(blog): publish daily article for ${TODAY} [automated]"

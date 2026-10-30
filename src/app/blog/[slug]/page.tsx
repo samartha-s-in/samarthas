@@ -4,21 +4,33 @@ import matter from 'gray-matter';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
+import { getPostsDirectory } from '@/lib/posts';
 import { ArrowLeft, Calendar, User, Clock } from 'lucide-react';
 import styles from './Post.module.css';
 
-const postsDirectory = path.join(process.cwd(), '_posts');
+interface Props {
+  params: Promise<{ slug: string }>;
+}
 
 export async function generateStaticParams() {
+  const postsDirectory = getPostsDirectory();
   if (!fs.existsSync(postsDirectory)) return [];
-  const filenames = fs.readdirSync(postsDirectory);
+  const filenames = fs
+    .readdirSync(postsDirectory)
+    .filter((f) => f.endsWith('.mdx') || f.endsWith('.md'));
+
   return filenames.map((filename) => ({
-    slug: filename.replace(/\.mdx$/, ''),
+    slug: filename.replace(/\.(mdx|md)$/, ''),
   }));
 }
 
 async function getPostData(slug: string) {
-  const fullPath = path.join(postsDirectory, `${slug}.mdx`);
+  const postsDirectory = getPostsDirectory();
+  let fullPath = path.join(postsDirectory, `${slug}.mdx`);
+  if (!fs.existsSync(fullPath)) {
+    fullPath = path.join(postsDirectory, `${slug}.md`);
+  }
 
   if (!fs.existsSync(fullPath)) {
     notFound();
@@ -32,16 +44,75 @@ async function getPostData(slug: string) {
   };
 }
 
-export default async function PostPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  try {
+    const { frontmatter } = await getPostData(slug);
+    const title = `${frontmatter.title} | Samartha S`;
+    const description = frontmatter.excerpt || 'Technical robotics and AI engineering article by Samartha S.';
+    const canonical = `https://samarthas.vercel.app/blog/${slug}`;
+
+    return {
+      title,
+      description,
+      keywords: frontmatter.tags || ['Robotics', 'ROS 2', 'AI', 'Embedded Systems', 'Samartha S'],
+      authors: [{ name: frontmatter.author || 'Samartha S' }],
+      alternates: {
+        canonical,
+      },
+      openGraph: {
+        title,
+        description,
+        type: 'article',
+        publishedTime: frontmatter.date,
+        authors: [frontmatter.author || 'Samartha S'],
+        url: canonical,
+        siteName: 'Samartha S Portfolio & Research Lab',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+      },
+    };
+  } catch {
+    return {
+      title: 'Article | Samartha S',
+      description: 'Technical engineering article by Samartha S.',
+    };
+  }
+}
+
+export default async function PostPage({ params }: Props) {
   const { slug } = await params;
   const { frontmatter, content } = await getPostData(slug);
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'TechArticle',
+    headline: frontmatter.title,
+    description: frontmatter.excerpt,
+    author: {
+      '@type': 'Person',
+      name: frontmatter.author || 'Samartha S',
+      url: 'https://samarthas.vercel.app',
+    },
+    datePublished: frontmatter.date,
+    dateModified: frontmatter.date,
+    mainEntityOfPage: `https://samarthas.vercel.app/blog/${slug}`,
+    keywords: Array.isArray(frontmatter.tags) ? frontmatter.tags.join(', ') : '',
+    publisher: {
+      '@type': 'Person',
+      name: 'Samartha S',
+    },
+  };
+
   return (
     <div className={`container ${styles.postContainer}`}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <div className={styles.backNav}>
         <Link href="/blog" className={styles.backLink}>
           <ArrowLeft size={16} />
@@ -59,6 +130,7 @@ export default async function PostPage({
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric',
+                timeZone: 'UTC',
               })}
             </span>
             <span className={styles.metaItem}>

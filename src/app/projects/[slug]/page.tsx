@@ -1,6 +1,7 @@
 import { projects } from '@/lib/portfolioData';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { GithubIcon } from '@/components/Common/Icons';
 import {
   ArrowLeft,
@@ -10,17 +11,54 @@ import {
 } from 'lucide-react';
 import styles from './ProjectDetail.module.css';
 
+interface Props {
+  params: Promise<{ slug: string }>;
+}
+
 export async function generateStaticParams() {
   return projects.map((project) => ({
     slug: project.slug,
   }));
 }
 
-export default async function ProjectDetailPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const project = projects.find((p) => p.slug === slug);
+
+  if (!project) {
+    return {
+      title: 'Project Not Found | Samartha S',
+      description: 'Project could not be found.',
+    };
+  }
+
+  const title = `${project.title} | Samartha S`;
+  const description = project.description || project.tagline;
+  const canonical = `https://samarthas.vercel.app/projects/${slug}`;
+
+  return {
+    title,
+    description,
+    keywords: [...project.techStack, project.category, 'Robotics', 'Samartha S'],
+    alternates: {
+      canonical,
+    },
+    openGraph: {
+      title,
+      description,
+      type: 'article',
+      url: canonical,
+      siteName: 'Samartha S Portfolio & Robotics Lab',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+    },
+  };
+}
+
+export default async function ProjectDetailPage({ params }: Props) {
   const { slug } = await params;
   const project = projects.find((p) => p.slug === slug);
 
@@ -28,8 +66,27 @@ export default async function ProjectDetailPage({
     notFound();
   }
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'CreativeWork',
+    name: project.title,
+    description: project.description,
+    creator: {
+      '@type': 'Person',
+      name: 'Samartha S',
+      url: 'https://samarthas.vercel.app',
+    },
+    keywords: project.techStack.join(', '),
+    url: `https://samarthas.vercel.app/projects/${project.slug}`,
+    ...(project.githubUrl ? { codeRepository: project.githubUrl } : {}),
+  };
+
   return (
     <div className={`container ${styles.detailPage}`}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Back button */}
       <div className={styles.backNav}>
         <Link href="/projects" className={styles.backLink}>

@@ -59,7 +59,15 @@ export default function HomePage() {
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [copiedPhone, setCopiedPhone] = useState(false);
 
-  const categories = ['All', 'Robotics & ROS', 'Drones & UAVs', 'AI & CV', 'Embedded & IoT'];
+  const categories = [
+    'All',
+    'Robotics & ROS',
+    'Drones & UAVs',
+    'AI & CV',
+    'Embedded & IoT',
+    'CAD & 3D',
+    'Web Dev',
+  ];
 
   const filteredProjects = useMemo(() => {
     if (activeCategory === 'All') return projects;

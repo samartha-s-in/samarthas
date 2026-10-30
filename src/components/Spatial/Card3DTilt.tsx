@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState, MouseEvent } from 'react';
+import React, { useRef, MouseEvent } from 'react';
 import styles from './Card3DTilt.module.css';
 
 interface Card3DTiltProps {
@@ -17,8 +17,7 @@ export const Card3DTilt: React.FC<Card3DTiltProps> = ({
   glow = true,
 }) => {
   const cardRef = useRef<HTMLDivElement | null>(null);
-  const [transform, setTransform] = useState<string>('perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)');
-  const [glarePosition, setGlarePosition] = useState<{ x: number; y: number; opacity: number }>({ x: 50, y: 50, opacity: 0 });
+  const glareRef = useRef<HTMLDivElement | null>(null);
 
   const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
     const card = cardRef.current;
@@ -34,16 +33,24 @@ export const Card3DTilt: React.FC<Card3DTiltProps> = ({
     const rotateX = ((y - centerY) / centerY) * -intensity;
     const rotateY = ((x - centerX) / centerX) * intensity;
 
-    setTransform(`perspective(1000px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) scale3d(1.02, 1.02, 1.02)`);
+    card.style.transform = `perspective(1000px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) scale3d(1.02, 1.02, 1.02)`;
 
-    const glareX = (x / rect.width) * 100;
-    const glareY = (y / rect.height) * 100;
-    setGlarePosition({ x: glareX, y: glareY, opacity: 0.18 });
+    if (glow && glareRef.current) {
+      const glareX = (x / rect.width) * 100;
+      const glareY = (y / rect.height) * 100;
+      glareRef.current.style.background = `radial-gradient(circle at ${glareX}% ${glareY}%, rgba(0, 229, 255, 0.18) 0%, transparent 70%)`;
+      glareRef.current.style.opacity = '1';
+    }
   };
 
   const handleMouseLeave = () => {
-    setTransform('perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)');
-    setGlarePosition((prev) => ({ ...prev, opacity: 0 }));
+    const card = cardRef.current;
+    if (card) {
+      card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)';
+    }
+    if (glow && glareRef.current) {
+      glareRef.current.style.opacity = '0';
+    }
   };
 
   return (
@@ -52,16 +59,8 @@ export const Card3DTilt: React.FC<Card3DTiltProps> = ({
       className={`${styles.tiltWrapper} ${className}`}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      style={{ transform }}
     >
-      {glow && (
-        <div
-          className={styles.glareOverlay}
-          style={{
-            background: `radial-gradient(circle at ${glarePosition.x}% ${glarePosition.y}%, rgba(0, 229, 255, ${glarePosition.opacity}) 0%, transparent 70%)`,
-          }}
-        />
-      )}
+      {glow && <div ref={glareRef} className={styles.glareOverlay} />}
       <div className={styles.tiltContent}>{children}</div>
     </div>
   );

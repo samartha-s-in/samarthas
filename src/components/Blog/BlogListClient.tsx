@@ -89,6 +89,7 @@ export const BlogListClient: React.FC<BlogListClientProps> = ({ posts }) => {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric',
+                    timeZone: 'UTC',
                   })}
                 </span>
                 <span className={styles.readTime}>

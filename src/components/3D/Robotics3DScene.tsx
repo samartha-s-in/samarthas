@@ -985,9 +985,12 @@ export const Robotics3DScene: React.FC = () => {
     // 11. MAIN ANIMATION & NAV2 AUTONOMOUS LOOP
     // ==========================================
     const clock = new THREE.Clock();
+    let frameCount = 0;
 
     const animate = () => {
       animFrameRef.current = requestAnimationFrame(animate);
+      frameCount++;
+      const shouldUpdateTelemetry = frameCount % 10 === 0;
       const elapsedTime = clock.getElapsedTime();
 
       // Smooth camera orbit
@@ -1083,19 +1086,21 @@ export const Robotics3DScene: React.FC = () => {
           drone.position.y = dState.targetPos.y + Math.sin(elapsedTime * 2.5) * 0.12;
         }
 
-        // Live Drone Telemetry
-        setDroneTelemetry({
-          status: dState.status,
-          altitude: Number(drone.position.y.toFixed(2)),
-          airspeed: dState.isFlying ? 1.65 : 0,
-          targetX: Number(dState.targetPos.x.toFixed(2)),
-          targetZ: Number(dState.targetPos.z.toFixed(2)),
-          posX: Number(drone.position.x.toFixed(2)),
-          posZ: Number(drone.position.z.toFixed(2)),
-          headingDeg: Number(((dState.yaw * (180 / Math.PI)) % 360).toFixed(1)),
-          pitchDeg: Number((dState.pitch * (180 / Math.PI)).toFixed(1)),
-          rollDeg: Number((dState.roll * (180 / Math.PI)).toFixed(1)),
-        });
+        // Live Drone Telemetry (throttled for 60fps render performance)
+        if (shouldUpdateTelemetry) {
+          setDroneTelemetry({
+            status: dState.status,
+            altitude: Number(drone.position.y.toFixed(2)),
+            airspeed: dState.isFlying ? 1.65 : 0,
+            targetX: Number(dState.targetPos.x.toFixed(2)),
+            targetZ: Number(dState.targetPos.z.toFixed(2)),
+            posX: Number(drone.position.x.toFixed(2)),
+            posZ: Number(drone.position.z.toFixed(2)),
+            headingDeg: Number(((dState.yaw * (180 / Math.PI)) % 360).toFixed(1)),
+            pitchDeg: Number((dState.pitch * (180 / Math.PI)).toFixed(1)),
+            rollDeg: Number((dState.roll * (180 / Math.PI)).toFixed(1)),
+          });
+        }
       }
 
       // Model C: AUTONOMOUS AMR NAV2 KINEMATICS ENGINE WITH MULTI-WAYPOINT PATH TRACKING
@@ -1182,26 +1187,30 @@ export const Robotics3DScene: React.FC = () => {
           }
         });
 
-        // Live Nav2 Telemetry
-        setNav2Telemetry({
-          status: nav.status,
-          targetX: Number(nav.targetPos.x.toFixed(2)),
-          targetZ: Number(nav.targetPos.z.toFixed(2)),
-          posX: Number(amr.position.x.toFixed(2)),
-          posZ: Number(amr.position.z.toFixed(2)),
-          linearVel: Number(nav.linearVel.toFixed(2)),
-          angularVel: Number(nav.angularVel.toFixed(2)),
-          headingDeg: Number(((nav.heading * (180 / Math.PI)) % 360).toFixed(1)),
-        });
+        // Live Nav2 Telemetry (throttled)
+        if (shouldUpdateTelemetry) {
+          setNav2Telemetry({
+            status: nav.status,
+            targetX: Number(nav.targetPos.x.toFixed(2)),
+            targetZ: Number(nav.targetPos.z.toFixed(2)),
+            posX: Number(amr.position.x.toFixed(2)),
+            posZ: Number(amr.position.z.toFixed(2)),
+            linearVel: Number(nav.linearVel.toFixed(2)),
+            angularVel: Number(nav.angularVel.toFixed(2)),
+            headingDeg: Number(((nav.heading * (180 / Math.PI)) % 360).toFixed(1)),
+          });
+        }
       }
 
-      // General Telemetry
-      setTelemetry({
-        yaw: Number(((currentRotation.current.y * (180 / Math.PI)) % 360).toFixed(1)),
-        pitch: Number((currentRotation.current.x * (180 / Math.PI)).toFixed(1)),
-        jointAngle: Number((Math.sin(elapsedTime * 1.2) * 35).toFixed(1)),
-        scanDist: Number((12.5 + Math.sin(elapsedTime * 3) * 2.3).toFixed(2)),
-      });
+      // General Telemetry (throttled)
+      if (shouldUpdateTelemetry) {
+        setTelemetry({
+          yaw: Number(((currentRotation.current.y * (180 / Math.PI)) % 360).toFixed(1)),
+          pitch: Number((currentRotation.current.x * (180 / Math.PI)).toFixed(1)),
+          jointAngle: Number((Math.sin(elapsedTime * 1.2) * 35).toFixed(1)),
+          scanDist: Number((12.5 + Math.sin(elapsedTime * 3) * 2.3).toFixed(2)),
+        });
+      }
 
       renderer.render(scene, camera);
     };

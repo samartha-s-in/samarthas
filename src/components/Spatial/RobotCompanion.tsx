@@ -7,15 +7,19 @@ import styles from './RobotCompanion.module.css';
 
 export const RobotCompanion: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [pupilOffset, setPupilOffset] = useState({ x: 0, y: 0 });
   const [vibeMode, setVibeMode] = useState(false);
   const [activeLog, setActiveLog] = useState('VSS Visual Servoing active. Tracking 6-DOF robotic manipulator.');
   const botBtnRef = useRef<HTMLButtonElement | null>(null);
+  const pupilRef = useRef<HTMLDivElement | null>(null);
 
-  // Eye tracks cursor globally
+  // Eye tracks cursor globally with direct DOM transform (zero React re-renders)
   useEffect(() => {
+    let animId: number | null = null;
+    let targetX = 0;
+    let targetY = 0;
+
     const handleMouseMove = (e: MouseEvent) => {
-      if (!botBtnRef.current) return;
+      if (!botBtnRef.current || !pupilRef.current) return;
       const rect = botBtnRef.current.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
       const centerY = rect.top + rect.height / 2;
@@ -29,14 +33,24 @@ export const RobotCompanion: React.FC = () => {
       const ratio = clampedDist / 400;
 
       const angle = Math.atan2(deltaY, deltaX);
-      setPupilOffset({
-        x: Math.cos(angle) * maxRadius * ratio,
-        y: Math.sin(angle) * maxRadius * ratio,
-      });
+      targetX = Math.cos(angle) * maxRadius * ratio;
+      targetY = Math.sin(angle) * maxRadius * ratio;
+
+      if (!animId) {
+        animId = requestAnimationFrame(() => {
+          if (pupilRef.current) {
+            pupilRef.current.style.transform = `translate(${targetX.toFixed(1)}px, ${targetY.toFixed(1)}px)`;
+          }
+          animId = null;
+        });
+      }
     };
 
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      if (animId) cancelAnimationFrame(animId);
+    };
   }, []);
 
   const toggleVibeMode = () => {
@@ -102,21 +116,20 @@ export const RobotCompanion: React.FC = () => {
               <button
                 onClick={() => {
                   confetti({
-                    particleCount: 80,
+                    particleCount: 60,
                     spread: 80,
-                    origin: { x: 0.88, y: 0.88 },
+                    origin: { x: 0.9, y: 0.9 },
                   });
-                  setActiveLog('Kinematics celebration trigger dispatched.');
                 }}
                 className={styles.actionBtn}
               >
                 <Zap size={14} />
-                <span>Trigger Burst</span>
+                <span>Pulse Thrusters</span>
               </button>
             </div>
 
-            {/* Navigation Shortcuts */}
-            <div className={styles.shortcutRow}>
+            {/* Quick Jump Links */}
+            <div className={styles.quickLinksRow}>
               <a href="#lab" onClick={() => setIsOpen(false)} className={styles.quickLink}>
                 #3D Lab
               </a>
@@ -153,19 +166,9 @@ export const RobotCompanion: React.FC = () => {
             <div className={styles.scanLaser} />
 
             {/* Eye Pupil with responsive gaze */}
-            <div
-              className={styles.eyePupil}
-              style={{
-                transform: `translate(${pupilOffset.x}px, ${pupilOffset.y}px)`,
-              }}
-            >
-              <div className={styles.pupilInner} />
-            </div>
+            <div ref={pupilRef} className={styles.eyePupil} />
           </div>
         </div>
-
-        {/* Pulse Dot Indicator */}
-        <span className={styles.onlineBadge} />
       </button>
     </div>
   );

@@ -597,29 +597,51 @@ Tuning innovation gate thresholds and sensor noise covariances in EKF2 allows au
   },
 ];
 
-// Determine Which Article to Publish Today
-function getDeterministicTopicIndex(dateStr) {
-  let hash = 0;
-  for (let i = 0; i < dateStr.length; i++) {
-    hash = (hash << 5) - hash + dateStr.charCodeAt(i);
-    hash |= 0;
-  }
-  return Math.abs(hash) % TOPICS_CATALOG.length;
+// Scan existing articles in postsDir to find publish history
+const existingFiles = fs.readdirSync(postsDir).filter(f => f.endsWith('.mdx') || f.endsWith('.md'));
+
+// Check if an article for today is already published
+const todayFiles = existingFiles.filter(f => f.startsWith(`${today}-`));
+if (todayFiles.length > 0 && !forceFlag) {
+  console.log(`ℹ️ An article for ${today} is already published: [${todayFiles[0]}]`);
+  console.log(`✨ Use --force to overwrite if needed.`);
+  process.exit(0);
 }
 
-const topicIndex = getDeterministicTopicIndex(today);
-const selectedTopic = TOPICS_CATALOG[topicIndex];
+// Pick the least recently published topic to ensure optimal freshness & no duplicates
+function pickNextTopic() {
+  const slugLastPublished = {};
+  for (const topic of TOPICS_CATALOG) {
+    slugLastPublished[topic.slug] = '1970-01-01';
+  }
+
+  for (const file of existingFiles) {
+    const match = file.match(/^(\d{4}-\d{2}-\d{2})-(.+)\.(mdx|md)$/);
+    if (match) {
+      const fileDate = match[1];
+      const fileSlug = match[2];
+      if (slugLastPublished[fileSlug] !== undefined) {
+        if (fileDate > slugLastPublished[fileSlug]) {
+          slugLastPublished[fileSlug] = fileDate;
+        }
+      }
+    }
+  }
+
+  const sortedTopics = [...TOPICS_CATALOG].sort((a, b) => {
+    const dateA = slugLastPublished[a.slug] || '1970-01-01';
+    const dateB = slugLastPublished[b.slug] || '1970-01-01';
+    return dateA.localeCompare(dateB);
+  });
+
+  return sortedTopics[0];
+}
+
+const selectedTopic = pickNextTopic();
 
 // Generate Unique Slug with Date
 const fileSlug = `${today}-${selectedTopic.slug}`;
 const targetFilePath = path.join(postsDir, `${fileSlug}.mdx`);
-
-// Check if already published
-if (fs.existsSync(targetFilePath) && !forceFlag) {
-  console.log(`ℹ️ An article for ${today} is already published: [${fileSlug}.mdx]`);
-  console.log(`✨ Use --force to overwrite if needed.`);
-  process.exit(0);
-}
 
 // Construct Authentic MDX Document
 const mdxContent = `---
