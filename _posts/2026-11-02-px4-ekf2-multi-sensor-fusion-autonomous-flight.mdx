@@ -1,0 +1,46 @@
+---
+title: 'Extended Kalman Filter (EKF2) Multi-Sensor Fusion in PX4: Optical Flow, IMU & RTK-GPS'
+date: '2026-11-02'
+author: 'Samartha S'
+category: 'Robotics'
+tags: ["PX4","EKF2","Sensor Fusion","Pixhawk","Optical Flow","RTK-GPS","Drones"]
+excerpt: 'Detailed derivation of state covariance propagation and measurement update gates for GPS-denied indoor-to-outdoor autonomous drone transitions.'
+---
+
+## State Estimation in Contested Environments
+
+Autonomous drones rely on accurate 15-state position, velocity, and orientation estimates to maintain stable flight dynamics. In industrial warehouse facilities or urban canyons where GPS signals degrade, the **PX4 EKF2 (Extended Kalman Filter)** must seamlessly switch sensor modalities.
+
+```
+IMU (Accel / Gyro @ 250Hz) ──> [ EKF2 Prediction Step ]
+                                       |
+Optical Flow / Barometer / RTK-GPS ──> [ EKF2 Measurement Update (Innovation Gating) ] ──> State [x, v, q, b_a, b_g]
+```
+
+### The 24-State Vector Formulation
+
+The PX4 EKF2 estimates 24 core states:
+- **Position & Velocity:** `p in R^3, v in R^3`
+- **Attitude Quaternion:** `q in S^3`
+- **IMU Biases:** Gyroscope bias `b_w in R^3`, Accelerometer bias `b_a in R^3`
+- **Magnetic Field & Wind Vectors:** Earth magnetic field `m in R^3`, Horizontal wind `w in R^2`
+
+### Innovation Gating (Mahalanobis Distance Outlier Rejection)
+
+To prevent corrupted sensor measurements (e.g., GPS multipath reflections or optical flow reflections on shiny floors) from destabilizing flight, an innovation test ratio is computed:
+
+```math
+d^2 = y_k^T * S_k^{-1} * y_k <= gamma_{gate}
+```
+
+Where `y_k = z_k - h(x_k)` is the innovation residual, and `S_k = H_k * P_k * H_k^T + R_k` is the innovation covariance. If `d^2 > gamma`, the measurement is rejected.
+
+### Smooth Indoor-to-Outdoor Transition Strategy
+
+1. **Indoor (GPS-Denied):** Fusion of downward optical flow (PMW3901) and LiDAR rangefinder height.
+2. **Transition Zone:** When RTK satellite fix reaches integer ambiguity lock (`Fix Type 6`), GPS velocity innovations are evaluated for 2.0 seconds before blending.
+3. **Outdoor Flight:** Full RTK-GPS multi-antenna heading fusion with centimeter-level precision.
+
+### Conclusion
+
+Tuning innovation gate thresholds and sensor noise covariances in EKF2 allows autonomous drones to navigate complex indoor-outdoor environments with sub-decimeter trajectory tracking.
